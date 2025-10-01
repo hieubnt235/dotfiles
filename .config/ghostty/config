@@ -1,0 +1,26 @@
+theme = Cyberpunk
+#
+# default
+shell-integration = detect 
+
+# all
+shell-integration-features = true 
+
+font-size = 12.0
+window-decoration = auto
+
+cursor-color = cell-foreground
+cursor-opacity = 0.8
+cursor-style-blink = true
+adjust-cursor-thickness = 2
+adjust-cursor-height = 1
+
+keybind = ctrl+shift+h=goto_split:left
+keybind = ctrl+shift+l=goto_split:right
+keybind = ctrl+shift+k=goto_split:up
+keybind = ctrl+shift+j=goto_split:down
+keybind = ctrl+shift+bracket_right=goto_split:next
+keybind = ctrl+shift+bracket_left=goto_split:previous
+
+
+
