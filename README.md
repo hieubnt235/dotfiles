@@ -3,5 +3,6 @@
 ```bash
 git clone https://github.com/hieubnt235/dotfiles.git ~/dotfiles
 cd ~/dotfiles/
-stow .
+stow -t ~/ nvim
+stow -t ~/ *
 ```
