@@ -25,7 +25,8 @@ return {
                 "<leader>Tv",
                 function()
                     local count = vim.v.count1
-                    require("toggleterm").toggle(count, vim.o.columns * 0.4, LazyVim.root.get(), "vertical")
+                    local size = math.floor(vim.o.columns * 0.32)
+                    require("toggleterm").toggle(count, size, LazyVim.root.get(), "vertical")
                 end,
                 desc = "ToggleTerm (vertical root_dir)",
             },
@@ -89,16 +90,16 @@ return {
                 -- not natively supported but implemented in this plugin.
                 -- width = <value>,
                 -- height = <value>,
-                -- winblend = 30,
-                border = "double",
+                winblend = 20,
+                -- border = "double",
                 highlights = {
                     border = "FloatBorder",
                     background = "NormalFloat",
                 },
             },
             highlights = {
-                FloatBorder = { guifg = "#8da1c0", guibg = "#e6ebf3" },
-                NormalFloat = { guibg = "#e6ebf3" },
+                FloatBorder = { guifg = "#f5f5f5", guibg = "#1e1e2e" },
+                NormalFloat = { guifg = "#f5f5f5", guibg = "#1e1e2e" },
             },
         },
     },
