@@ -6,4 +6,117 @@ return {
             require("dap-python").setup("path/to/debugpy")
         end,
     },
+    -- {
+    --     "benlubas/molten-nvim",
+    --     dependencies = { "3rd/image.nvim" },
+    --     build = ":UpdateRemotePlugins",
+    --     init = function()
+    --         vim.g.molten_image_provider = "image.nvim"
+    --         vim.g.molten_use_border_highlights = true
+    --
+    --         vim.g.molten_auto_open_output = false
+    --         vim.g.molten_image_provider = "image.nvim"
+    --         vim.g.molten_wrap_output = true
+    --         vim.g.molten_virt_text_output = true
+    --         vim.g.molten_virt_lines_off_by_1 = true
+    --
+    --         -- don't change the mappings (unless it's related to your bug)
+    --         vim.keymap.set("n", "<localleader>mi", ":MoltenInit<CR>")
+    --         vim.keymap.set("n", "<localleader>e", ":MoltenEvaluateOperator<CR>")
+    --         vim.keymap.set("n", "<localleader>rr", ":MoltenReevaluateCell<CR>")
+    --         vim.keymap.set("v", "<localleader>r", ":<C-u>MoltenEvaluateVisual<CR>gv")
+    --         vim.keymap.set("n", "<localleader>os", ":noautocmd MoltenEnterOutput<CR>")
+    --         vim.keymap.set("n", "<localleader>oh", ":MoltenHideOutput<CR>")
+    --         vim.keymap.set("n", "<localleader>md", ":MoltenDelete<CR>")
+    --         vim.keymap.set(
+    --             "n",
+    --             "<localleader>mx",
+    --             ":MoltenOpenInBrowser<CR>",
+    --             { desc = "open output in browser", silent = true }
+    --         )
+    --     end,
+    -- },
+    -- {
+    --     "quarto-dev/quarto-nvim",
+    --     dependencies = {
+    --         "jmbuhr/otter.nvim",
+    --         "nvim-treesitter/nvim-treesitter",
+    --     },
+    --     init = function()
+    --         local runner = require("quarto.runner")
+    --         vim.keymap.set("n", "<localleader>rc", runner.run_cell, { desc = "run cell", silent = true })
+    --         vim.keymap.set("n", "<localleader>ra", runner.run_above, { desc = "run cell and above", silent = true })
+    --         vim.keymap.set("n", "<localleader>rA", runner.run_all, { desc = "run all cells", silent = true })
+    --         vim.keymap.set("n", "<localleader>rl", runner.run_line, { desc = "run line", silent = true })
+    --         vim.keymap.set("v", "<localleader>r", runner.run_range, { desc = "run visual range", silent = true })
+    --         vim.keymap.set("n", "<localleader>RA", function()
+    --             runner.run_all(true)
+    --         end, { desc = "run all cells of all languages", silent = true })
+    --     end,
+    --     opts = {
+    --         lspFeatures = {
+    --             -- NOTE: put whatever languages you want here:
+    --             languages = { "python" },
+    --             chunks = "all",
+    --             diagnostics = {
+    --                 enabled = true,
+    --                 triggers = { "BufWritePost" },
+    --             },
+    --             completion = {
+    --                 enabled = true,
+    --             },
+    --         },
+    --         keymap = {
+    --             -- NOTE: setup your own keymaps:
+    --             hover = "K",
+    --             definition = "gd",
+    --             rename = "<leader>cr",
+    --             references = "gr",
+    --             format = "<leader>cf",
+    --         },
+    --         codeRunner = {
+    --             enabled = true,
+    --             default_method = "molten",
+    --         },
+    --     },
+    -- },
+    -- -- {
+    -- --     "GCBallesteros/jupytext.nvim",
+    -- --     opts = {
+    -- --         style = "markdown",
+    -- --         output_extension = "md",
+    -- --         force_ft = "markdown",
+    -- --     },
+    -- -- },
+    --
+    -- {
+    --     "3rd/image.nvim",
+    --     build = false,
+    --     opts = {
+    --         backend = "kitty",
+    --         processor = "magick_cli",
+    --         integrations = {},
+    --         max_width = 100,
+    --         max_height = 12,
+    --         max_height_window_percentage = math.huge,
+    --         max_width_window_percentage = math.huge,
+    --         window_overlap_clear_enabled = true,
+    --         window_overlap_clear_ft_ignore = { "cmp_menu", "cmp_docs", "" },
+    --     },
+    -- },
+    -- {
+    --     "nvim-treesitter/nvim-treesitter",
+    --     build = ":TSUpdate",
+    --     opts = {
+    --         ensure_installed = {
+    --             "markdown",
+    --             "markdown_inline",
+    --             "python",
+    --         },
+    --         highlight = {
+    --             enable = true,
+    --             additional_vim_regex_highlighing = false,
+    --         },
+    --     },
+    -- },
 }

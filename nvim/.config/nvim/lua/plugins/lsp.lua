@@ -54,17 +54,28 @@ return {
                     },
                 },
                 neocmakelsp = {},
+                ["*"] = {
+                    capabilities = require("blink.cmp").get_lsp_capabilities({
+                        textDocument = {
+                            completion = {
+                                completionItem = {
+                                    snippetSupport = false,
+                                },
+                            },
+                        },
+                    }),
+                },
             },
             -- Disable snippetSupport
-            capabilities = require("blink.cmp").get_lsp_capabilities({
-                textDocument = {
-                    completion = {
-                        completionItem = {
-                            snippetSupport = false,
-                        },
-                    },
-                },
-            }),
+            -- capabilities = require("blink.cmp").get_lsp_capabilities({
+            --     textDocument = {
+            --         completion = {
+            --             completionItem = {
+            --                 snippetSupport = false,
+            --             },
+            --         },
+            --     },
+            -- }),
         },
     },
 }

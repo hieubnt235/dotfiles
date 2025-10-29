@@ -1,0 +1,22 @@
+{
+    "tab_size": 2,
+    "color_scheme": "light",
+    "language_servers": {
+        "ruff": {
+            "command": [
+                "ruff",
+                "server"
+            ],
+            "languages": [
+                "python"
+            ]
+        }
+    },
+    "enable_language_servers": true,
+    "autocomplete": true,
+    "autosuggest": true,
+    "autoinspect": true,
+    "line_numbers": true,
+    "edit_mode": "vi",
+    "notebook": {}
+}
