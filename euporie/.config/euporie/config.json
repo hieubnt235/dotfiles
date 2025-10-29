@@ -1,6 +1,6 @@
 {
-    "tab_size": 2,
-    "color_scheme": "light",
+    "tab_size": 4,
+    "color_scheme": "default",
     "language_servers": {
         "ruff": {
             "command": [
@@ -12,11 +12,32 @@
             ]
         }
     },
+    "formatters": [
+        {
+            "command": [
+                "ruff",
+                "format",
+                "-"
+            ],
+            "languages": [
+                "python"
+            ]
+        }
+    ],
+    "multiplexer_passthrough": true,
     "enable_language_servers": true,
     "autocomplete": true,
     "autosuggest": true,
     "autoinspect": true,
+    "autoformat": true,
     "line_numbers": true,
     "edit_mode": "vi",
-    "notebook": {}
+    "external_editor": "nvim",
+    "graphics": "kitty-unicode",
+    "force_graphics": true,
+    "show_file_icons": true,
+    "show_side_bar": true,
+    "show_filenames": true,
+    "always_show_tab_bar": true,
+    "tab_mode": "stack"
 }
