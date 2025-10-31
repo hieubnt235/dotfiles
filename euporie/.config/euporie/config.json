@@ -39,5 +39,6 @@
     "show_side_bar": true,
     "show_filenames": true,
     "always_show_tab_bar": true,
-    "tab_mode": "stack"
+    "tab_mode": "stack",
+    "show_cell_borders": true
 }
