@@ -1,4 +1,4 @@
 #!/bin/bash
 for d in */; do
-  stow -t "$HOME" "$d"
+    stow --adopt -t "$HOME" "$d"
 done
