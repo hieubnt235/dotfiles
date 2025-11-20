@@ -1,30 +1,36 @@
 return {
+    -- {
+    --     "catppuccin/nvim",
+    --     -- name = "catppuccin",
+    --     lazy = false,
+    --     priority = 1000,
+    --     opts = {
+    --         flavour = "latte", -- latte, frappe, macchiato, mocha
+    --         styles = {
+    --             loops = { "italic" },
+    --             functions = { "bold" },
+    --             keywords = { "bold" },
+    --             strings = {},
+    --             variables = {},
+    --             numbers = {},
+    --             booleans = {},
+    --             properties = {},
+    --             types = { "bold" },
+    --             operators = {},
+    --         },
+    --     },
+    -- },
     {
-        "LazyVim/LazyVim",
-        opts = {
-            colorscheme = "catppuccin",
-        },
-    },
-
-    {
-        "catppuccin/nvim",
-        -- name = "catppuccin",
+        "yorik1984/newpaper.nvim",
         lazy = false,
         priority = 1000,
+        config = true,
         opts = {
-            flavour = "latte", -- latte, frappe, macchiato, mocha
-            styles = {
-                loops = { "italic" },
-                functions = { "bold" },
-                keywords = { "bold" },
-                strings = {},
-                variables = {},
-                numbers = {},
-                booleans = {},
-                properties = {},
-                types = { "bold" },
-                operators = {},
-            },
+            -- terminal = "bg",
+            greyscale = false,
+            lightness = 0,
+            saturation = 1,
+            -- tags = "italic",
         },
     },
     -- {
@@ -43,4 +49,10 @@ return {
     --         },
     --     },
     -- },
+    {
+        "LazyVim/LazyVim",
+        opts = {
+            colorscheme = "newpaper",
+        },
+    },
 }

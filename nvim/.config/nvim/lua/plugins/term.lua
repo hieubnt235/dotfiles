@@ -90,7 +90,7 @@ return {
                 -- not natively supported but implemented in this plugin.
                 -- width = <value>,
                 -- height = <value>,
-                winblend = 20,
+                winblend = 10,
                 -- border = "double",
                 highlights = {
                     border = "FloatBorder",
@@ -98,8 +98,14 @@ return {
                 },
             },
             highlights = {
-                FloatBorder = { guifg = "#f5f5f5", guibg = "#1e1e2e" },
-                NormalFloat = { guifg = "#f5f5f5", guibg = "#1e1e2e" },
+                FloatBorder = {
+                    guifg = "#f5f5f5",
+                    guibg = "#1e1e2e",
+                },
+                NormalFloat = {
+                    guifg = "#f5f5f5",
+                    guibg = "#1e1e2e",
+                },
             },
         },
     },
