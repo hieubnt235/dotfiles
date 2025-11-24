@@ -37,7 +37,7 @@ return {
         opts = {
             servers = {
                 clangd = {
-                    mason = false,
+                    mason = true,
                     init_options = {
                         fallbackFlags = { "--std=c++23" },
                     },

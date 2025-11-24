@@ -1,5 +1,5 @@
 format = '''
-[┌─>](bold green) $git_branch$python\[$username$hostname\]
+[┌─>](bold green) $git_branch$git_status$python\[$username$hostname\]
 [├─>](bold green) $directory
 [└──────────>](bold green) '''
 
@@ -23,8 +23,8 @@ truncate_to_repo = false
 truncation_symbol = '…/'
 
 [python]
-format='[(\($virtualenv ${symbol}${pyenv_prefix}\) )]($style)'
-symbol='🐍'
+format = '[(\($virtualenv ${symbol}${pyenv_prefix}\) )]($style)'
+symbol = '🐍'
 
 [git_branch]
-format='[$symbol$branch(:$remote_branch)]($style) '
+format = '[$symbol$branch(:$remote_branch)]($style) '
