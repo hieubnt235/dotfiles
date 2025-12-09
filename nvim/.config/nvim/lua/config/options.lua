@@ -4,6 +4,7 @@
 vim.opt.shiftwidth = 4
 vim.g.lazyvim_python_lsp = "basedpyright"
 vim.g.editorconfig = false
+-- vim.g.lazyvim_prettier_needs_config = true
 
 -- vim.api.nvim_create_autocmd("FileType", {
 --     pattern = { "javascript", "typescript", "javascriptreact", "typescriptreact", "vue", "json" },
