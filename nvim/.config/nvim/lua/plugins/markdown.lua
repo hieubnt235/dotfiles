@@ -31,6 +31,7 @@ return {
         opts = {
             preview = {
                 enable = false, -- Disable Markview by default
+                icon_provider = "devicons",
             },
         },
 
@@ -45,7 +46,7 @@ return {
                     if cfg.relative ~= "" then
                         local buf = vim.api.nvim_win_get_buf(win)
                         if vim.api.nvim_buf_is_valid(buf) then
-                            local ok, ft = pcall(vim.api.nvim_buf_get_option, buf, "filetype")
+                            local ok, ft = pcall(vim.api.nvim_get_option_value, buf, "filetype")
                             if ok and (ft == "diagram" or ft == "mermaid" or ft == "plantuml" or ft == "ditaa") then
                                 vim.api.nvim_win_close(win, true)
                             end
@@ -94,20 +95,19 @@ return {
                     close_diagrams()
                 end
 
-                print("Preview: " .. (preview_enabled and "ON" or "OFF"))
+                print("Markdown preview: " .. (preview_enabled and "ON" or "OFF"))
             end
         end,
 
         keys = {
             {
-                "<leader>mt",
+                "<leader>mp",
                 function()
                     TogglePreview()
                 end,
                 mode = "n",
-                desc = "Toggle ALL markdown previews",
+                desc = "Toggle markdown previews",
             },
-            { "<leader>ms", "<CMD>Markview splitToggle<CR>", mode = "n", desc = "Toggle Markview splitview" },
         },
     },
 }

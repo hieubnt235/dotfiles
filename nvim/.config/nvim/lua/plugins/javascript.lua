@@ -14,23 +14,40 @@ return {
         },
     },
 
-    {
-        "pmizio/typescript-tools.nvim",
-        dependencies = { "nvim-lua/plenary.nvim", "neovim/nvim-lspconfig" },
-        opts = {},
-    },
+    -- {
+    --     "pmizio/typescript-tools.nvim",
+    --     lazy = false,
+    --     dependencies = { "nvim-lua/plenary.nvim", "neovim/nvim-lspconfig" },
+    --     opts = {},
+    -- },
     {
         "neovim/nvim-lspconfig",
         opts = {
 
             servers = {
+
+                vtsls = {
+                    enabled = true,
+                    filetypes = {
+                        "javascript",
+                        "javascriptreact",
+                        "javascript.jsx",
+                        "typescript",
+                        "typescriptreact",
+                        "typescript.tsx",
+                        "vue",
+                        -- "html",
+                    },
+                },
+
+                html = {},
+                typescript_tools = {
+                    enabled = false,
+                },
                 tsserver = {
                     enabled = false,
                 },
                 ts_ls = {
-                    enabled = false,
-                },
-                vtsls = {
                     enabled = false,
                 },
                 ember = {
@@ -39,4 +56,24 @@ return {
             },
         },
     },
+
+    -- Plugin for editing <script> tags in html files in proxy buffer
+    -- which also provides support for correct attach `typescript` LSP
+    -- {
+    --     "AndrewRadev/inline_edit.vim",
+    --     lazy = true,
+    --     event = "VeryLazy",
+    --     cmd = { "InlineEdit" },
+    --     keys = {
+    --         { "<leader>cI", "<cmd>InlineEdit<cr>", desc = "Inline Edit (JS inside <script> html)" },
+    --     },
+    --     config = function() end,
+    -- },
+    -- {
+    --     "nvim-treesitter/nvim-treesitter",
+    --     opts = function(_, opts)
+    --         vim.treesitter.language.register("javascript", "html")
+    --         vim.treesitter.language.register("typescript", "html")
+    --     end,
+    -- },
 }
