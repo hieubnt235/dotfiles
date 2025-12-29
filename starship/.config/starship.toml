@@ -1,5 +1,5 @@
 format = '''
-[┌─>](bold green) $git_branch$git_status$python$conda\[$username$hostname\]
+[┌─>](bold green) $git_branch$git_status$python$pixi$conda\[$username$hostname\]
 [├─>](bold green) $directory
 [└──────────>](bold green) '''
 
@@ -24,10 +24,21 @@ truncation_symbol = '…/'
 [python]
 format = '[(\(py-venv${symbol}: $virtualenv ${pyenv_prefix}\) )]($style)'
 symbol = '🐍'
+python_binary = [
+    # this is the python from PATH if in a pixi shell
+    # (assuming you don't have python on your global PATH)
+    "python",
+    # fall back to pixi's python if it's available
+    ".pixi/envs/default/bin/python",
+]
+
 
 [conda]
 format = '[(\(conda${symbol}: $environment\) )]($style)'
 symbol = '🐍'
+
+[pixi]
+format = '[(\(pixi${symbol}: $environment\) )]($style)'
 
 [git_branch]
 format = '[$symbol$branch(:$remote_branch)]($style) '

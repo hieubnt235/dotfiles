@@ -8,6 +8,21 @@ vim.g.editorconfig = false
 vim.opt.conceallevel = 0
 vim.opt.concealcursor = ""
 
+vim.keymap.set("n", "<A-l>", function()
+    vim.cmd("normal! zl")
+end)
+
+vim.keymap.set("n", "<A-h>", function()
+    vim.cmd("normal! zh")
+end)
+
+-- vim.keymap.set("n", "<leader>th", function()
+--     vim.lsp.buf.type_hierarchy("subtypes")
+-- end)
+--
+-- vim.keymap.set("n", "<leader>tH", function()
+--     vim.lsp.buf.type_hierarchy("supertypes")
+-- end)
 -- vim.api.nvim_create_autocmd("FileType", {
 --     pattern = { "javascript", "typescript", "javascriptreact", "typescriptreact", "vue", "json" },
 --     callback = function()
