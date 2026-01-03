@@ -57,13 +57,13 @@ return {
         },
         opts = {
             -- size can be a number or function which is passed the current terminal
-            size = function(term)
-                if term.direction == "horizontal" then
-                    return 15
-                elseif term.direction == "vertical" then
-                    return vim.o.columns * 0.4
-                end
-            end,
+            -- size = function(term)
+            --     if term.direction == "horizontal" then
+            --         return 15
+            --     elseif term.direction == "vertical" then
+            --         return vim.o.columns * 0.4
+            --     end
+            -- end,
             open_mapping = [[<c-\>]],
             -- on_open = fun(t: Terminal), -- function to run when the terminal opens
             -- on_close = fun(t: Terminal), -- function to run when the terminal closes
@@ -78,35 +78,33 @@ return {
             insert_mappings = true, -- whether or not the open mapping applies in insert mode
             terminal_mappings = true, -- whether or not the open mapping applies in the opened terminals
             persist_size = true,
-            direction = "horizontal" or "vertical" or "window" or "float",
+            -- direction = "horizontal" or "vertical" or "window" or "float",
             -- direction = "vertical",
             close_on_exit = true, -- close the terminal window when the process exits
             -- shell = vim.o.shell, -- change the default shell
             -- This field is only relevant if direction is set to 'float'
             float_opts = {
-                -- The border key is *almost* the same as 'nvim_open_win'
-                -- see :h nvim_open_win for details on borders however
-                -- the 'curved' border is a custom border type
-                -- not natively supported but implemented in this plugin.
                 -- width = <value>,
                 -- height = <value>,
-                winblend = 10,
-                -- border = "double",
-                highlights = {
-                    border = "FloatBorder",
-                    background = "NormalFloat",
-                },
+                -- winblend = 10,
+                -- border = "single",
+                -- highlights = {
+                --     border = "FloatBorder",
+                --     foreground = "#f5f5f5",
+                --     background = "#1e1e2e",
+                -- },
             },
-            highlights = {
-                FloatBorder = {
-                    guifg = "#f5f5f5",
-                    guibg = "#1e1e2e",
-                },
-                NormalFloat = {
-                    guifg = "#f5f5f5",
-                    guibg = "#1e1e2e",
-                },
-            },
+            -- highlights = {
+            --     FloatBorder = {
+            --         guifg = "#f5f5f5",
+            --         guibg = "#1e1e2e",
+            --     },
+            --     NormalFloat = {
+            --         guibg = "#f5f5f5",
+            --         guifg = "#1e1e2e",
+            --     },
+            -- },
+            --
         },
     },
 }
