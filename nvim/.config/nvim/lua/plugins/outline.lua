@@ -4,7 +4,9 @@ return {
         opts = {
 
             outline_window = {
-                width = 50,
+                width = 25,
+                position = "right",
+                relative_width = true,
             },
             outline_items = {
                 show_symbol_lineno = true,
