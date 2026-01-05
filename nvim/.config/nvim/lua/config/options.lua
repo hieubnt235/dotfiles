@@ -4,7 +4,7 @@
 vim.opt.shiftwidth = 4
 vim.g.lazyvim_python_lsp = "basedpyright"
 vim.g.editorconfig = false
--- vim.g.lazyvim_prettier_needs_config = true
+vim.g.lazyvim_prettier_needs_config = false
 vim.opt.conceallevel = 0
 vim.opt.concealcursor = ""
 
