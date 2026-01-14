@@ -1,5 +1,5 @@
 return {
-    { "Civitasv/cmake-tools.nvim", enabled = false },
+    { "Civitasv/cmake-tools.nvim", enabled = true },
     {
         "Mythos-404/xmake.nvim",
         opts = {
@@ -51,6 +51,7 @@ return {
                         "--function-arg-placeholders",
                         "--fallback-style=llvm",
                         "--experimental-modules-support",
+                        "--query-driver=**/*",
                     },
                 },
                 neocmakelsp = {},
