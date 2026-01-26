@@ -3,7 +3,7 @@ return {
     opts = {
         scroll = {
             animate = {
-                duration = { step = 10, total = 100 },
+                duration = { step = 10, total = 70 },
                 easing = "linear",
             },
             -- faster animation when repeating scroll after delay
