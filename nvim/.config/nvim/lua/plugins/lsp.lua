@@ -1,5 +1,5 @@
 return {
-    { "Civitasv/cmake-tools.nvim", enabled = true },
+    -- { "Civitasv/cmake-tools.nvim", enabled = true },
     {
         "Mythos-404/xmake.nvim",
         opts = {
@@ -45,6 +45,7 @@ return {
                     cmd = {
                         "clangd",
                         "--background-index",
+                        "-j=8",
                         "--clang-tidy",
                         "--header-insertion=iwyu",
                         "--completion-style=detailed",
@@ -53,6 +54,18 @@ return {
                         "--experimental-modules-support",
                         "--query-driver=**/*",
                     },
+                    on_attach = function(client, _)
+                        -- Disable semantic tokens so Treesitter handles the highlighting
+                        client.server_capabilities.semanticTokensProvider = nil
+                    end,
+                    -- on_attach = function(client, bufnr)
+                    --     -- Delay hint updates to avoid stale columns
+                    --     vim.defer_fn(function()
+                    --         if vim.api.nvim_buf_is_valid(bufnr) then
+                    --             vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+                    --         end
+                    --     end, 200)
+                    -- end,
                 },
                 neocmakelsp = {},
                 ["*"] = {

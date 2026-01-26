@@ -7,6 +7,11 @@ vim.g.editorconfig = false
 vim.g.lazyvim_prettier_needs_config = false
 vim.opt.conceallevel = 0
 vim.opt.concealcursor = ""
+-- vim.opt.scroll = 10
+-- vim.g.clangd_inactive_regions = 0
+
+vim.api.nvim_set_hl(0, "LspInactiveRegion", { link = "Normal" })
+-- vim.lsp.inlay_hint.enable(false)
 
 vim.keymap.set("n", "<A-l>", function()
     vim.cmd("normal! zl")
