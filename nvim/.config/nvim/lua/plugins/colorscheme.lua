@@ -67,10 +67,13 @@ return {
         config = function()
             local namespace_color = "darkcyan"
             local class_color = "lightseagreen"
-            local directive_color = "dodgerblue"
+            -- local directive_color = "dodgerblue"
+            local directive_color = "magenta"
+            local function_color = "darkblue"
             require("github-theme").setup({
                 options = {
                     styles = {
+                        functions = "NONE",
                         -- strings = "italic",
                         -- comments = "italic",
                         -- keywords = "bold",
@@ -93,10 +96,14 @@ return {
                         ["@keyword.import"] = { fg = directive_color },
                         -- ["@keyword.vim"] = { fg = "indianred" },
                         --
-                        -- -- Targets 'class', 'struct', 'enum'
-                        -- ["@keyword.type"] = { fg = "blue" },
-                        -- -- Targets 'auto'
-                        -- ["@keyword.modifier"] = { fg = "blue" },
+                        ["@function"] = { fg = function_color },
+                        ["@function.call"] = { fg = function_color },
+                        ["@function.method"] = { fg = function_color },
+                        ["@function.method.call"] = { fg = function_color },
+                        ["@function.builtin"] = { fg = function_color },
+                        ["@method"] = { fg = function_color },
+                        ["@method.call"] = { fg = function_color },
+                        ["@constructor"] = { fg = function_color },
                     },
                 },
                 specs = {
@@ -107,6 +114,7 @@ return {
                             builtin1 = "blue",
                             builtin2 = "blue",
                             conditional = "blue",
+                            func = function_color,
                             preproc = directive_color,
                             type = class_color,
                             string = "red",
