@@ -5,9 +5,10 @@ return {
 
             outline_window = {
                 width = 25,
-                position = "right",
+                position = "left",
                 relative_width = true,
             },
+
             outline_items = {
                 show_symbol_lineno = true,
             },
