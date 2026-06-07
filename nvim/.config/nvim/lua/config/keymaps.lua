@@ -17,3 +17,17 @@ vim.keymap.set("n", "<A-e>", "zl", { noremap = true, silent = true })
 vim.keymap.set("n", "<A-y>", "zh", { noremap = true, silent = true })
 vim.keymap.set("n", "<A-d>", "zL", { noremap = true, silent = true })
 vim.keymap.set("n", "<A-u>", "zH", { noremap = true, silent = true })
+
+-- Git cockpit: Neogit replaces lazygit on the same keys (gg = repo root, gG = cwd).
+vim.keymap.set("n", "<leader>gg", function()
+  require("neogit").open({ cwd = LazyVim.root.git() })
+end, { desc = "Neogit (Root Dir)" })
+vim.keymap.set("n", "<leader>gG", function()
+  require("neogit").open()
+end, { desc = "Neogit (cwd)" })
+
+-- Terminal: leave terminal mode with a double <C-n>, instead of the awkward
+-- <C-\><C-n>. We avoid mapping a bare <Esc> so <Esc> still reaches the program
+-- (e.g. Claude Code's interrupt). Note: snacks terminals also support <Esc><Esc>
+-- by default (single <Esc> passes through, double <Esc> -> normal mode).
+vim.keymap.set("t", "<C-n><C-n>", [[<C-\><C-n>]], { desc = "Terminal: to normal mode" })

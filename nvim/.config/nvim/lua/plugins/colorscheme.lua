@@ -15,6 +15,14 @@ return {
             compile = false,
             -- `:colorscheme kanagawa` follows these per background; we pin dragon below.
             background = { dark = "wave", light = "lotus" },
+            -- Brighten the window divider -- kanagawa's default WinSeparator is too
+            -- dim to see clearly. fujiGray (the comment gray) is visible without
+            -- being harsh; bump to colors.palette.oldWhite for even brighter.
+            overrides = function(colors)
+                return {
+                    WinSeparator = { fg = colors.palette.fujiGray },
+                }
+            end,
         },
     },
     {
