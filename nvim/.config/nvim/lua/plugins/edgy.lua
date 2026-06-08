@@ -65,9 +65,24 @@ return {
         opts.animate = vim.tbl_extend("force", opts.animate or {}, { enabled = false })
 
         opts.options = opts.options or {}
-        opts.options.left = vim.tbl_extend("force", opts.options.left or {}, { size = 40 })
+        opts.options.left = vim.tbl_extend("force", opts.options.left or {}, { size = 0.2 })
         opts.options.right = vim.tbl_extend("force", opts.options.right or {}, { size = 0.3 })
         opts.options.bottom = vim.tbl_extend("force", opts.options.bottom or {}, { size = 0.3 })
+
+        -- Make terminals follow their SLOT size (the single knob: options.<edge>.size
+        -- above), exactly like neo-tree / outline / claude do. LazyVim pins a PER-VIEW
+        -- size on the terminal entries (size = { height = 0.4 }), and a per-view size
+        -- OVERRIDES the slot default -- that's why changing options.bottom.size didn't
+        -- move the <C-/> terminal, while the side panels (no per-view size) tracked
+        -- their slot fine. We drop the pin on every edge so a terminal inherits
+        -- whichever slot it docks in. One value per edge controls everything.
+        for _, edge in ipairs({ opts.left, opts.right, opts.bottom, opts.top }) do
+            for _, e in ipairs(edge or {}) do
+                if e.ft == "snacks_terminal" or e.ft == "terminal" or e.ft == "toggleterm" then
+                    e.size = nil
+                end
+            end
+        end
 
         -- Fix edgy's "cached shrink" bug. Two root causes in edgy:
         --   1. Its resize (window.lua:212) bases each step on a STORED value that

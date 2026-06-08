@@ -101,12 +101,12 @@ return {
 
         keys = {
             {
-                "<leader>mp",
+                "<leader>Pm",
                 function()
                     TogglePreview()
                 end,
                 mode = "n",
-                desc = "Toggle markdown previews",
+                desc = "Markdown preview",
             },
         },
     },
