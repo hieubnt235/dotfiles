@@ -391,11 +391,39 @@ tmux_conf_urlscan_options="--compact --dedupe"
 
 # this is the place to override or undo settings
 
+# Neovim-like copy mode:
+#  - copy-mode is already vi (k/j, Ctrl-u/d, gg/G, /?, v, Ctrl-v, y all work)
+#  - `set-clipboard on`: copying in copy-mode pushes to the SYSTEM clipboard via
+#    OSC52 -- works locally AND over SSH (kitty captures it). This is the remote-safe
+#    equivalent of nvim's `"+y` (do NOT use tmux_conf_copy_to_os_clipboard, which
+#    shells out to xsel/xclip and can't reach the clipboard from a remote server).
+set -g set-clipboard on
+#  - `V` = visual-LINE select (vim), alongside `v` (char) and Ctrl-v (block).
+bind -T copy-mode-vi V send-keys -X select-line
+#  - `Escape` acts like vim: if you're selecting, it just CLEARS the selection and
+#    stays in copy mode (so a wrong block doesn't kick you out); only when nothing is
+#    selected does it leave copy mode. (`q` always exits outright.)
+bind -T copy-mode-vi Escape if-shell -F "#{selection_present}" "send-keys -X clear-selection" "send-keys -X cancel"
+#  - Mouse drag-RELEASE keeps the selection highlighted and STAYS in copy mode
+#    (default copy-pipe-and-cancel aggressively copies + exits). Native feel: select
+#    with the mouse -> highlight persists -> press `y` to copy (clipboard) or `Esc`
+#    to deselect / adjust. (Swap to `copy-selection-no-clear` if you'd rather it
+#    auto-copy on release but still stay in copy mode.)
+bind -T copy-mode-vi MouseDragEnd1Pane send-keys -X stop-selection
+
 # increase history size
 #set -g history-limit 10000
 
-# start with mouse mode enabled
-#set -g mouse on
+# start with mouse mode enabled (wheel scroll -> copy mode, click panes, drag-resize,
+# drag-select copies). Hold Shift to bypass tmux for kitty's native selection.
+set -g mouse on
+
+# Use ONLY the default prefix C-b (prefer defaults: more docs, consistent everywhere).
+# Drop oh-my-tmux's second prefix C-a so Ctrl-a passes straight to apps (Claude resume,
+# shell start-of-line) with no `prefix C-a` dance.
+set -gu prefix2
+# Drop oh-my-tmux's `prefix Enter` copy-mode alias; keep the default `prefix [`.
+unbind -T prefix Enter
 
 # force Vi mode
 #   really you should export VISUAL or EDITOR environment variable, see manual
