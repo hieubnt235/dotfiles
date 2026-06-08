@@ -1,0 +1,25 @@
+# Bash completion for tmux.
+# Debian's bash-completion package doesn't ship one for tmux, so this adds it.
+# bash-completion auto-loads this file (named `tmux`) on demand the first time you
+# complete `tmux`, from ~/.local/share/bash-completion/completions/ -- no sourcing
+# needed. Lives in the dotfiles `tmux` stow package so it's reproducible.
+#   - first word  -> every tmux command AND its alias (attach/a, list-sessions/ls, ...)
+#   - after -t/-s -> existing session names
+_tmux_complete()
+{
+    local cur="${COMP_WORDS[COMP_CWORD]}"
+    local prev="${COMP_WORDS[COMP_CWORD - 1]}"
+
+    if [[ $COMP_CWORD -eq 1 ]]; then
+        COMPREPLY=($(compgen -W "$(tmux list-commands -F '#{command_list_name} #{command_list_alias}' 2>/dev/null)" -- "$cur"))
+        return
+    fi
+
+    case "$prev" in
+        -t | -s)
+            COMPREPLY=($(compgen -W "$(tmux list-sessions -F '#{session_name}' 2>/dev/null)" -- "$cur"))
+            return
+            ;;
+    esac
+}
+complete -F _tmux_complete tmux
