@@ -18,6 +18,9 @@ return {
             -- Brighten the window divider -- kanagawa's default WinSeparator is too
             -- dim to see clearly. fujiGray (the comment gray) is visible without
             -- being harsh; bump to colors.palette.oldWhite for even brighter.
+            -- (Neo-tree hidden/ignored "access" styling -- dim + italic -- is handled
+            -- dynamically in explorer.lua, not here, because it must blur whatever
+            -- color git already gave the file rather than a fixed highlight.)
             overrides = function(colors)
                 return {
                     WinSeparator = { fg = colors.palette.fujiGray },
