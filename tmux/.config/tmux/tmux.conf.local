@@ -276,6 +276,31 @@ tmux_conf_theme_status_left=" ❐ #S "
 #
 set -g @plugin 'alexwforsythe/tmux-which-key'
 set -g @plugin 'tmux-plugins/tmux-cpu'
+# flash.nvim-style label jump (EasyMotion). In copy-mode press `s`, type ONE char,
+# labels (a,s,d,f...) appear over every match on screen, press a label to teleport the
+# cursor. Written in Ruby (needs the `ruby` interpreter on PATH -- installed via pixi).
+# NOTE: the plugin self-binds `@jump-key` in the PREFIX table, but oh-my-tmux applies
+# its own bindings AFTER tpm so that binding gets clobbered (same ordering quirk the
+# smooth-scroll C-e/C-y workaround handles). So we don't rely on it -- the real flash
+# key is bare `s` in copy-mode, bound by hand below (local bindings win). `prefix + s`
+# stays oh-my-tmux's session tree (choose-tree). To flash from the shell: wheel-up or
+# `prefix [` into copy-mode, then `s`.
+set -g @plugin 'schasse/tmux-jump'
+# Smooth (animated) copy-mode scrolling -- fakes animation by stepping 1 line at a
+# time with micro-sleeps + easing (see the deep-dive; it can't be native in tmux).
+set -g @plugin 'azorng/tmux-smooth-scroll'
+set -g @smooth-scroll-easing "linear"   # match nvim snacks (linear); or sine/quad
+# The plugin binds C-d/C-u (and J/K and the wheel) to its "normal" amount, so THIS is
+# the knob -- 15 lines to match nvim's 15<C-d>. (One amount for keys AND wheel; the
+# plugin can't give them separate values. Lower it if the wheel feels like too much.)
+set -g @smooth-scroll-normal "15"
+set -g @smooth-scroll-mouse "true"        # smooth mouse-wheel scroll too
+set -g @smooth-scroll-speed "60"          # per-step delay; LOWER = faster. Tune to taste.
+# The plugin greedily grabs ALL scroll keys, incl. vim's 1-line C-e/C-y, and lumps
+# them into the 15-line "normal" scroll. Restore C-e/C-y to native 1-line fine scroll.
+# Must run AFTER tpm loads the plugin (oh-my-tmux runs tpm after this file), so defer
+# it in the background with a short sleep.
+run-shell -b "sleep 2; tmux bind -T copy-mode-vi C-e send-keys -X scroll-down; tmux bind -T copy-mode-vi C-y send-keys -X scroll-up"
 # tmux_conf_theme_status_right=" "
 # system tray: CPU% (tmux-cpu plugin) | RAM used/total (inline `free`, no plugin)
 # | server battery % | clock+date | host. For deep detail run htop in a pane.
@@ -410,6 +435,40 @@ bind -T copy-mode-vi Escape if-shell -F "#{selection_present}" "send-keys -X cle
 #    to deselect / adjust. (Swap to `copy-selection-no-clear` if you'd rather it
 #    auto-copy on release but still stay in copy mode.)
 bind -T copy-mode-vi MouseDragEnd1Pane send-keys -X stop-selection
+#  - `y` = yank like vim: copy to clipboard (set-clipboard on -> OSC52) then CLEAR the
+#    selection but STAY in copy-mode (default `copy-selection-and-cancel` kicks you out
+#    to normal mode -- the annoying part). After `y` you keep navigating, exactly like
+#    nvim returning to normal mode in-buffer. `q`/`Escape` still leave outright.
+bind -T copy-mode-vi y send-keys -X copy-selection
+#  - Double/Triple click = select the word/line and STAY in copy-mode with it
+#    highlighted (vim's mouse: double-click -> visual mode on the word), instead of the
+#    default `select-word ... copy-pipe-and-cancel` which grabs + exits. Then extend the
+#    selection or press `y` to copy. Two tables: `root` (click while NOT in copy-mode --
+#    must enter it first) and `copy-mode-vi` (click while already in copy-mode).
+bind -T root DoubleClick1Pane select-pane -t = \; if-shell -F "#{||:#{pane_in_mode},#{mouse_any_flag}}" "send-keys -M" "copy-mode -H ; send-keys -X select-word"
+bind -T root TripleClick1Pane select-pane -t = \; if-shell -F "#{||:#{pane_in_mode},#{mouse_any_flag}}" "send-keys -M" "copy-mode -H ; send-keys -X select-line"
+bind -T copy-mode-vi DoubleClick1Pane select-pane \; send-keys -X select-word
+bind -T copy-mode-vi TripleClick1Pane select-pane \; send-keys -X select-line
+#  - `s` = flash.nvim label jump WHILE in copy-mode (bare key, no prefix): type one
+#    char -> labels appear over every match -> press a label to teleport the cursor.
+#    Same tmux-jump wrapper the plugin binds to `prefix + s` (see plugin section above);
+#    binding it here too makes it feel native once you're already navigating scrollback.
+bind -T copy-mode-vi s run-shell -b "/home/hieu/.config/tmux/plugins/tmux-jump/scripts/tmux-jump.sh"
+#  - `/` and `?` = INCREMENTAL search, live like neovim's `/` (incsearch): matches
+#    highlight and the cursor moves as you type each char, instead of only jumping after
+#    Enter (tmux's default `search-forward` is non-live). `n`/`N` still cycle matches.
+#    `-i` makes the prompt re-run on every keystroke; `%%%` is the live-input placeholder.
+bind -T copy-mode-vi / command-prompt -i -p "(search down)" "send-keys -X search-forward-incremental \"%%%\""
+bind -T copy-mode-vi ? command-prompt -i -p "(search up)" "send-keys -X search-backward-incremental \"%%%\""
+#  - Smooth scrolling is handled by the tmux-smooth-scroll plugin (see the tpm
+#    section below), which fakes animation by stepping 1 line at a time with
+#    micro-sleeps + easing. So we DON'T rebind C-d/C-u here -- the plugin owns them.
+
+# Silence the bell (no audible ding on window switch / window activity). Default is
+# bell-action=any + monitor-bell=on, which forwards any window's bell to the terminal
+# as a sound. Turn both off.
+set -g bell-action none
+set -g monitor-bell off
 
 # increase history size
 #set -g history-limit 10000
@@ -421,7 +480,9 @@ set -g mouse on
 # Use ONLY the default prefix C-b (prefer defaults: more docs, consistent everywhere).
 # Drop oh-my-tmux's second prefix C-a so Ctrl-a passes straight to apps (Claude resume,
 # shell start-of-line) with no `prefix C-a` dance.
-set -gu prefix2
+# set -gu prefix2
+#
+
 # Drop oh-my-tmux's `prefix Enter` copy-mode alias; keep the default `prefix [`.
 unbind -T prefix Enter
 
@@ -442,6 +503,71 @@ unbind -T prefix Enter
 
 # display a message after toggling mouse support
 bind m run "cut -c3- '#{TMUX_CONF}' | sh -s _toggle_mouse" \; display 'mouse #{?#{mouse},on,off}'
+
+# remap pickers to nvim-style terminology (pane = "window", tmux window = "tab"):
+#   prefix + w  -> display-panes : pick a pane  ("choose window")
+#   prefix + t  -> choose-tree   : pick a tmux window ("the tab" list)
+# this also removes the old prefix + t = clock-mode (time), which was useless.
+# keep the pane numbers up until you actually pick one (or cancel) -- no timeout
+set -g display-panes-time 3600000
+bind w display-panes
+bind t choose-tree -Zw
+# prefix + q just cancels the prefix (does nothing) -- pane picking lives on w now
+bind q switch-client -T root
+
+# workspace layout: prefix + W splits the CURRENT window into a 2x3 grid
+# (3 equal columns; top row 70% tall, bottom row 30%)
+bind W \
+       split-window -h -c "#{pane_current_path}" \; \
+       split-window -h -c "#{pane_current_path}" \; \
+       select-layout even-horizontal \; \
+       select-pane -L \; select-pane -L \; \
+       split-window -v -l 30% -c "#{pane_current_path}" \; select-pane -U \; \
+       select-pane -R \; split-window -v -l 30% -c "#{pane_current_path}" \; select-pane -U \; \
+       select-pane -R \; split-window -v -l 30% -c "#{pane_current_path}" \; select-pane -U \; \
+       select-pane -L \; select-pane -L
+
+# drop oh-my-tmux's default plain hjkl pane nav -- we use Ctrl+hjkl (nav mode) only
+unbind -T prefix h
+unbind -T prefix j
+unbind -T prefix k
+unbind -T prefix l
+
+# persistent nvim-style nav mode (no timeout). Press prefix once to enter,
+# then keep going with NO prefix until you manually exit:
+#   Shift + h/l   -> previous / next window   (move between tabs)
+#   Ctrl  + hjkl  -> move between panes        (move between splits)
+#   Alt   + hjkl  -> resize the current pane
+# exit with Escape, q, Enter, or the prefix key (C-a / C-b).
+#
+#   first press from the prefix table: act once AND enter nav mode
+bind H   previous-window \; switch-client -T nav
+bind L   next-window     \; switch-client -T nav
+bind C-h select-pane -L  \; switch-client -T nav
+bind C-j select-pane -D  \; switch-client -T nav
+bind C-k select-pane -U  \; switch-client -T nav
+bind C-l select-pane -R  \; switch-client -T nav
+bind M-h resize-pane -L 2 \; switch-client -T nav
+bind M-j resize-pane -D 2 \; switch-client -T nav
+bind M-k resize-pane -U 2 \; switch-client -T nav
+bind M-l resize-pane -R 2 \; switch-client -T nav
+#   inside nav mode: act and stay (loop forever, no timeout)
+bind -T nav H   previous-window  \; switch-client -T nav
+bind -T nav L   next-window      \; switch-client -T nav
+bind -T nav C-h select-pane -L   \; switch-client -T nav
+bind -T nav C-j select-pane -D   \; switch-client -T nav
+bind -T nav C-k select-pane -U   \; switch-client -T nav
+bind -T nav C-l select-pane -R   \; switch-client -T nav
+bind -T nav M-h resize-pane -L 2 \; switch-client -T nav
+bind -T nav M-j resize-pane -D 2 \; switch-client -T nav
+bind -T nav M-k resize-pane -U 2 \; switch-client -T nav
+bind -T nav M-l resize-pane -R 2 \; switch-client -T nav
+#   manual exit back to normal
+bind -T nav Escape switch-client -T root
+bind -T nav q      switch-client -T root
+bind -T nav Enter  switch-client -T root
+bind -T nav C-a    switch-client -T root
+bind -T nav C-b    switch-client -T root
 
 # move status line to top
 #set -g status-position top
