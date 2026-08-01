@@ -294,13 +294,22 @@ set -g @smooth-scroll-easing "linear"   # match nvim snacks (linear); or sine/qu
 # the knob -- 15 lines to match nvim's 15<C-d>. (One amount for keys AND wheel; the
 # plugin can't give them separate values. Lower it if the wheel feels like too much.)
 set -g @smooth-scroll-normal "15"
-set -g @smooth-scroll-mouse "true"        # smooth mouse-wheel scroll too
+set -g @smooth-scroll-mouse "false"       # wheel = native tmux scroll (small, natural,
+                                          # browser-like steps). Keyboard C-d/C-u stays
+                                          # smooth+15. Long jumps: drag the scrollbar thumb.
 set -g @smooth-scroll-speed "60"          # per-step delay; LOWER = faster. Tune to taste.
 # The plugin greedily grabs ALL scroll keys, incl. vim's 1-line C-e/C-y, and lumps
 # them into the 15-line "normal" scroll. Restore C-e/C-y to native 1-line fine scroll.
 # Must run AFTER tpm loads the plugin (oh-my-tmux runs tpm after this file), so defer
 # it in the background with a short sleep.
 run-shell -b "sleep 2; tmux bind -T copy-mode-vi C-e send-keys -X scroll-down; tmux bind -T copy-mode-vi C-y send-keys -X scroll-up"
+
+# native pane scrollbar (tmux 3.6+). 'on' = always visible; 'modal' = only while
+# scrolling in copy-mode. kanagawa-matched: dim track (bg), bright thumb (fg=slider).
+set -gw pane-scrollbars on
+set -gw pane-scrollbars-position right
+set -gw pane-scrollbars-style "bg=#2a2a37,fg=#7e9cd8,width=1,pad=0"
+
 # tmux_conf_theme_status_right=" "
 # system tray: CPU% (tmux-cpu plugin) | RAM used/total (inline `free`, no plugin)
 # | server battery % | clock+date | host. For deep detail run htop in a pane.
@@ -515,17 +524,34 @@ bind t choose-tree -Zw
 # prefix + q just cancels the prefix (does nothing) -- pane picking lives on w now
 bind q switch-client -T root
 
-# workspace layout: prefix + W splits the CURRENT window into a 2x3 grid
-# (3 equal columns; top row 70% tall, bottom row 30%)
+# prefix + R  -> resync a half-drawn screen.
+# SYMPTOM: nvim's mode bar (NORMAL/INSERT/TERMINAL) sits partway UP the screen
+# with dead black space below it, while THIS tmux status bar still sits at the
+# real bottom. Width is fine, only the height is wrong.
+# CAUSE: the terminal was resized -- usually the window manager changing kitty's
+# HEIGHT (tile/maximize/monitor change) -- and the resize event (SIGWINCH) never
+# reached nvim, so it keeps painting into the old, shorter screen. Dragging the
+# kitty window edge fixes it because a drag forces a fresh resize; this does the
+# same thing without the mouse: split off a throwaway pane and immediately kill
+# it, so tmux recomputes the layout twice and every process in the window gets a
+# genuine resize carrying the correct size.
+# Deliberately NOT `resize-window`: that pins window-size to `manual`, which
+# stops the window auto-resizing for good and makes this bug PERMANENT.
+# `-d` keeps the focus in nvim. `##{pane_id}` must stay double-#: run-shell
+# format-expands its argument first, so a single # would resolve to the CURRENT
+# pane and kill the pane you are working in. Capturing the id also means a
+# failed split can never kill anything.
+bind R run-shell 'p=$(tmux split-window -d -P -F "##{pane_id}") && tmux kill-pane -t "$p"' \; display 'screen resynced'
+
+# workspace layout: prefix + W splits the CURRENT window into a 2x2 grid
+# (2 equal columns; top row 70% tall, bottom row 30%)
 bind W \
        split-window -h -c "#{pane_current_path}" \; \
-       split-window -h -c "#{pane_current_path}" \; \
        select-layout even-horizontal \; \
-       select-pane -L \; select-pane -L \; \
+       select-pane -L \; \
        split-window -v -l 30% -c "#{pane_current_path}" \; select-pane -U \; \
        select-pane -R \; split-window -v -l 30% -c "#{pane_current_path}" \; select-pane -U \; \
-       select-pane -R \; split-window -v -l 30% -c "#{pane_current_path}" \; select-pane -U \; \
-       select-pane -L \; select-pane -L
+       select-pane -L
 
 # drop oh-my-tmux's default plain hjkl pane nav -- we use Ctrl+hjkl (nav mode) only
 unbind -T prefix h

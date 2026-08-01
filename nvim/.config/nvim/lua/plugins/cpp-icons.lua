@@ -8,10 +8,14 @@
 --
 -- We override only the GLYPH for sources and the module, leaving mini.icons' own
 -- default color untouched (the original azure that .cpp had before any override).
--- ONLY headers get a color override -> orange. That orange is pinned to an
--- explicit hex via our own highlight group, NOT the builtin MiniIconsOrange link
+-- ONLY headers get a color override -> orange. That orange is written as an
+-- explicit hex on our own highlight group, NOT the builtin MiniIconsOrange link
 -- (links get reset by `:Lazy reload mini.icons` and can be repainted by the
--- colorscheme); a ColorScheme re-assert keeps it stable. surimiOrange = #ffa066.
+-- colorscheme); a ColorScheme re-assert keeps it stable.
+-- The hex is READ OFF the active colorscheme (DiagnosticWarn, the amber every
+-- theme defines) instead of being frozen: kanagawa's surimiOrange #ffa066 is a
+-- pale wash against a light theme like catppuccin-latte. Since the re-assert is
+-- already wired to ColorScheme, the icon now retracks the theme automatically.
 --
 -- NOTE: there is genuinely NO glyph in any Nerd Font that reads "h++" or "cppm"
 -- (verified by parsing the font's `post` glyph-name table). So C and C++ headers
@@ -20,10 +24,19 @@
 -- bare ones are tiny letters that render far smaller than the cell-filling
 -- md-language_cpp badge, while the boxed ones fill the cell and match it in size.
 
-local HDR = "#ffa066" -- orange - header only (.h .hpp ...)
+local HDR_FALLBACK = "#ffa066" -- kanagawa surimiOrange, used only if the lookup fails
+
+-- The theme's amber, as a hex. Falls back when DiagnosticWarn is missing/fg-less.
+local function hdr_color()
+    local ok, hl = pcall(vim.api.nvim_get_hl, 0, { name = "DiagnosticWarn", link = false })
+    if ok and hl and hl.fg then
+        return string.format("#%06x", hl.fg)
+    end
+    return HDR_FALLBACK
+end
 
 local function set_hl()
-    vim.api.nvim_set_hl(0, "IconCxxHeader", { fg = HDR })
+    vim.api.nvim_set_hl(0, "IconCxxHeader", { fg = hdr_color() })
 end
 vim.api.nvim_create_autocmd("ColorScheme", { callback = set_hl })
 set_hl()

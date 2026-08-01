@@ -1,26 +1,44 @@
--- Colorscheme: kanagawa -- stable (top-3 most installed), full Treesitter +
--- clangd LSP semantic-token coverage (messy C++ stays correctly colored), and a
--- muted/warm/low-contrast palette that's gentle for long (10h/day) sessions.
--- Variants (all bundled in this one theme, so it adapts to the room across a day):
---   kanagawa-dragon  = darkest, lowest contrast -> gentlest on the eyes (default)
---   kanagawa-wave    = default dark (a bit more color/contrast)
---   kanagawa-lotus   = light, for bright rooms / daytime
--- Switch live with:  :colorscheme kanagawa-lotus   (or -wave / -dragon)
+-- Colorscheme: catppuccin, "latte" flavour -- the LIGHT one, for bright rooms.
+-- Flavours (all bundled in this one theme, so it adapts to the room across a day):
+--   catppuccin-latte      = light (current)
+--   catppuccin-frappe     = dark, lowest contrast / warmest
+--   catppuccin-macchiato  = dark, mid contrast
+--   catppuccin-mocha      = darkest / most contrast
+-- Switch live with:  :colorscheme catppuccin-mocha   (or -frappe / -macchiato)
+--
+-- LazyVim already ships a catppuccin spec with the full integrations list
+-- (neo-tree, gitsigns, mini, trouble, native_lsp, ...), so we only add the
+-- flavour + the WinSeparator override on top of it.
 return {
     {
-        "rebelot/kanagawa.nvim",
+        "catppuccin/nvim",
+        name = "catppuccin",
         lazy = false,
         priority = 1000,
         opts = {
-            compile = false,
-            -- `:colorscheme kanagawa` follows these per background; we pin dragon below.
-            background = { dark = "wave", light = "lotus" },
-            -- Brighten the window divider -- kanagawa's default WinSeparator is too
-            -- dim to see clearly. fujiGray (the comment gray) is visible without
-            -- being harsh; bump to colors.palette.oldWhite for even brighter.
+            flavour = "latte",
+            -- Brighten the window divider -- the default WinSeparator is too dim to
+            -- see clearly. overlay0 is the mid gray: visible against latte's light
+            -- background without being harsh (bump to overlay1/overlay2 for more).
             -- (Neo-tree hidden/ignored "access" styling -- dim + italic -- is handled
             -- dynamically in explorer.lua, not here, because it must blur whatever
             -- color git already gave the file rather than a fixed highlight.)
+            custom_highlights = function(colors)
+                return {
+                    WinSeparator = { fg = colors.overlay0 },
+                }
+            end,
+        },
+    },
+    -- Kept installed so `:colorscheme kanagawa-wave` (or -dragon / -lotus) still
+    -- works as an instant switch back. `lazy = true` keeps it off the startup path;
+    -- lazy.nvim loads it on demand the moment you name it in :colorscheme.
+    {
+        "rebelot/kanagawa.nvim",
+        lazy = true,
+        opts = {
+            compile = false,
+            background = { dark = "wave", light = "lotus" },
             overrides = function(colors)
                 return {
                     WinSeparator = { fg = colors.palette.fujiGray },
@@ -31,7 +49,7 @@ return {
     {
         "LazyVim/LazyVim",
         opts = {
-            colorscheme = "kanagawa",
+            colorscheme = "catppuccin-latte",
         },
     },
 }
