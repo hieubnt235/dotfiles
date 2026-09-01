@@ -34,9 +34,15 @@ return {
     opts.highlights = function(defaults)
       local fg = hex("Normal", "fg") -- bright text for the active tab
       local accent = hex("Function", "fg") -- themed accent for indicator/modified
-      -- Use the Visual (selection) bg for the active tab -- far more visible than
-      -- CursorLine, which is too subtle in most dark themes.
-      local sel_bg = hex("Visual", "bg") or hex("PmenuSel", "bg")
+      -- Active-tab background = the EDITOR background. This is the classic tab
+      -- metaphor: the selected tab merges with the buffer underneath it, and the
+      -- rest of the bar (TabLineFill, always darker/dimmer) falls back.
+      -- It is also the only source that can never be a saturated block. Both
+      -- obvious alternatives fail on some theme in this config's shelf:
+      --   Visual     -> newpaper #0087af (hard cyan)
+      --   TabLineSel -> edge     #bf75d6 (purple)
+      -- Normal's bg is by definition the calm colour you already read code on.
+      local sel_bg = hex("Normal", "bg") or hex("TabLineSel", "bg")
       local dim = hex("Comment", "fg") -- muted side bars for inactive tabs
 
       -- Resolve whatever the colorscheme/LazyVim put here first: a generator
@@ -45,21 +51,35 @@ return {
       if type(inherited) == "function" then
         inherited = inherited(defaults)
       end
+      -- ...but only KEEP it while catppuccin is the active theme. LazyVim sets
+      -- `opts.highlights = require("catppuccin.special.bufferline").get_theme()`
+      -- from inside the catppuccin spec, and since catppuccin is loaded eagerly
+      -- that injection happens no matter which colorscheme you actually switch to.
+      -- The result is catppuccin's palette painted onto kanagawa/newpaper tabs
+      -- (e.g. error_selected keeping bg #eff1f6, a light block on a dark bar).
+      -- Dropping it lets bufferline derive its own defaults from the live theme.
+      if not tostring(vim.g.colors_name or ""):find("catppuccin", 1, true) then
+        inherited = nil
+      end
 
       return vim.tbl_deep_extend("force", inherited or {}, {
         buffer_selected = { fg = fg, bg = sel_bg, bold = true, italic = false },
         numbers_selected = { fg = fg, bg = sel_bg, bold = true, italic = false },
-        modified_selected = { fg = accent, bg = sel_bg, bold = true },
+        modified_selected = { fg = accent, bg = sel_bg, bold = true, italic = false },
         indicator_selected = { fg = accent, bg = sel_bg },
         -- the side bars: bright accent around the active tab, dim elsewhere
         separator_selected = { fg = accent, bg = sel_bg },
         separator_visible = { fg = dim },
         separator = { fg = dim },
-        diagnostic_selected = { bold = true },
-        hint_selected = { bold = true },
-        info_selected = { bold = true },
-        warning_selected = { bold = true },
-        error_selected = { bold = true },
+        -- bufferline's OWN defaults set italic = true on the diagnostic groups, so
+        -- the active tab's name renders slanted. Italics are disabled everywhere
+        -- else for a font-metrics reason (they overflow the cell and get clipped at
+        -- `modify_font cell_width 100%`), so turn them off here too.
+        diagnostic_selected = { bold = true, italic = false },
+        hint_selected = { bold = true, italic = false },
+        info_selected = { bold = true, italic = false },
+        warning_selected = { bold = true, italic = false },
+        error_selected = { bold = true, italic = false },
       })
     end
   end,

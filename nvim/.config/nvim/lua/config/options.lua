@@ -3,6 +3,10 @@
 -- Add any additional options here
 vim.opt.shiftwidth = 4
 vim.opt.tabstop = 4 -- a tab displays as 4 columns (match CLion's default)
+-- PaperColor is one colorscheme with two variants and picks between them from
+-- `&background`, which Neovim defaults to "dark". Pin it light here (options.lua
+-- loads before plugins) or you get the dark PaperColor.
+vim.o.background = "light"
 -- Use neo-tree as the file tree (toggle with <leader>e). LazyVim auto-disables the
 -- snacks explorer when this is set, but keeps the snacks picker for find/grep.
 -- neo-tree docks cleanly in edgy: resizable + size persists across toggles.
@@ -16,6 +20,11 @@ vim.g.editorconfig = true
 vim.g.lazyvim_prettier_needs_config = false
 vim.opt.conceallevel = 0
 vim.opt.concealcursor = ""
+-- NOTE: do NOT set `vim.o.winborder` here. It is global and repaints every float,
+-- including noice's cmdline popup (which already had the look you wanted), while
+-- NOT fixing LSP hover -- noice intercepts hover and renders it from its own view
+-- config, so the global option never reaches it. Hover borders belong in
+-- plugins/noice.lua instead.
 -- `list` is on (LazyVim default). Render tab indentation as BLANK instead of
 -- LazyVim's "tab:> " -- otherwise every tab-indented line shows ">" markers
 -- (this codebase is tab-indented). Keep trailing-space / nbsp warnings, which

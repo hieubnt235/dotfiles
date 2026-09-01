@@ -1,55 +1,85 @@
--- Colorscheme: catppuccin, "latte" flavour -- the LIGHT one, for bright rooms.
--- Flavours (all bundled in this one theme, so it adapts to the room across a day):
---   catppuccin-latte      = light (current)
---   catppuccin-frappe     = dark, lowest contrast / warmest
---   catppuccin-macchiato  = dark, mid contrast
---   catppuccin-mocha      = darkest / most contrast
--- Switch live with:  :colorscheme catppuccin-mocha   (or -frappe / -macchiato)
+-- Colorscheme: PaperColor, light variant. The ONLY theme installed.
 --
--- LazyVim already ships a catppuccin spec with the full integrations list
--- (neo-tree, gitsigns, mini, trouble, native_lsp, ...), so we only add the
--- flavour + the WinSeparator override on top of it.
+-- PaperColor is a vimscript scheme: it exposes ONE name and picks light vs dark
+-- from `&background`, so `vim.o.background = "light"` is pinned in
+-- config/options.lua -- without it you get the dark variant.
+--   :colorscheme PaperColor
+--
+-- Options must be set BEFORE the scheme loads, hence `init` (which lazy.nvim runs
+-- at startup) rather than `opts` -- a vimscript plugin has no setup().
+--
+-- ITALICS ARE OFF ON PURPOSE (`allow_italic = 0`). This is a font-metrics
+-- constraint, not taste: JetBrains Mono advances 0.600 em per glyph but its
+-- ITALIC ink reaches 0.658 em, and kitty clips each glyph to its cell. Italics
+-- would need `modify_font cell_width 110%` in kitty.conf, and that 10% is added to
+-- EVERY character on screen, which reads as badly spaced text. The two settings
+-- are COUPLED: turning italics back on requires raising cell_width to 110%.
 return {
     {
-        "catppuccin/nvim",
-        name = "catppuccin",
+        "NLKNguyen/papercolor-theme",
         lazy = false,
         priority = 1000,
-        opts = {
-            flavour = "latte",
-            -- Brighten the window divider -- the default WinSeparator is too dim to
-            -- see clearly. overlay0 is the mid gray: visible against latte's light
-            -- background without being harsh (bump to overlay1/overlay2 for more).
-            -- (Neo-tree hidden/ignored "access" styling -- dim + italic -- is handled
-            -- dynamically in explorer.lua, not here, because it must blur whatever
-            -- color git already gave the file rather than a fixed highlight.)
-            custom_highlights = function(colors)
-                return {
-                    WinSeparator = { fg = colors.overlay0 },
-                }
-            end,
-        },
+        init = function()
+            vim.g.PaperColor_Theme_Options = {
+                theme = {
+                    default = {
+                        allow_bold = 1,
+                        allow_italic = 0, -- see the note above; coupled to cell_width
+                    },
+                },
+            }
+
+            -- PaperColor paints methods AND class members the same near-black
+            -- (`Function` #444444, `@variable.member` #14161b), so you cannot tell
+            -- a call from a field. Rider's Melon Light separates them by SHADE
+            -- rather than hue: both purple, the member a touch deeper.
+            -- Reproduced here -- same hue, member darker. No `bold` is used: bold
+            -- changes stroke weight (and glyph ink), the deeper purple alone reads
+            -- as "a little bolder" without thickening the text.
+            local METHOD = "#6B2FBA" -- Melon's DEFAULT_FUNCTION_* purple
+            local MEMBER = "#4A1D82" -- same hue, ~30% darker
+            vim.api.nvim_create_autocmd("ColorScheme", {
+                pattern = "PaperColor",
+                callback = function()
+                    local set = function(groups, fg)
+                        for _, g in ipairs(groups) do
+                            vim.api.nvim_set_hl(0, g, { fg = fg })
+                        end
+                    end
+                    -- Both the Treesitter and the LSP groups must be set: clangd's
+                    -- semantic tokens (@lsp.type.*) win over Treesitter, so setting
+                    -- only one of the two leaves the colour changing once the LSP
+                    -- attaches.
+                    set({
+                        "@function",
+                        "@function.call",
+                        "@function.method",
+                        "@function.method.call",
+                        "@lsp.type.function",
+                        "@lsp.type.method",
+                    }, METHOD)
+                    set({
+                        "@variable.member",
+                        "@property",
+                        "@field",
+                        "@lsp.type.property",
+                        "@lsp.type.field",
+                    }, MEMBER)
+                end,
+            })
+        end,
     },
-    -- Kept installed so `:colorscheme kanagawa-wave` (or -dragon / -lotus) still
-    -- works as an instant switch back. `lazy = true` keeps it off the startup path;
-    -- lazy.nvim loads it on demand the moment you name it in :colorscheme.
-    {
-        "rebelot/kanagawa.nvim",
-        lazy = true,
-        opts = {
-            compile = false,
-            background = { dark = "wave", light = "lotus" },
-            overrides = function(colors)
-                return {
-                    WinSeparator = { fg = colors.palette.fujiGray },
-                }
-            end,
-        },
-    },
+
+    -- LazyVim ships its own tokyonight + catppuccin specs, so removing them from
+    -- this file is not enough -- they have to be disabled explicitly or lazy.nvim
+    -- keeps reinstalling them. `enabled = false` lets `:Lazy clean` delete them.
+    { "folke/tokyonight.nvim", enabled = false },
+    { "catppuccin/nvim", enabled = false },
+
     {
         "LazyVim/LazyVim",
         opts = {
-            colorscheme = "catppuccin-latte",
+            colorscheme = "PaperColor",
         },
     },
 }

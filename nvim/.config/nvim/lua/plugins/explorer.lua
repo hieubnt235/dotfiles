@@ -25,9 +25,30 @@ local function patch_access_styling()
 
     -- Lowered brightness for hidden/ignored names (normal files stay full = 1).
     -- How much of the real color is kept: 1 = full color (no blur), 0 = invisible
-    -- (full bg). LOWER = more blur. <-- edit this number.
-    local LOW_BRIGHTNESS = 0.5
-    LOW_BRIGHTNESS = math.min(1, math.max(0, LOW_BRIGHTNESS)) -- clamp to a safe 0..1
+    -- (full bg). LOWER = more blur. <-- edit these numbers.
+    --
+    -- Two values, because blending toward the background is NOT perceptually
+    -- symmetric: the same factor separates far more on a dark page than a light one.
+    -- Tuned on PaperColor (normal file #444444 on page #eeeeee, 8.4:1). What matters
+    -- is the gap between the dimmed name and the NORMAL name -- too small and the
+    -- blur is invisible, too large and the name is unreadable:
+    --   keep 0.75 -> #6f6f6f, only 1.9:1 apart from a normal file  (looks identical)
+    --   keep 0.55 -> #919191, 3.1:1 apart, still reads a bit too black
+    --   keep 0.40 -> #aaaaaa, 4.2:1 apart, 2.0:1 on the page (current) <-
+    --   keep 0.35 -> #b3b3b3, blurrier still if you want it fainter
+    local LOW_BRIGHTNESS_DARK = 0.5
+    local LOW_BRIGHTNESS_LIGHT = 0.4
+    -- Perceived lightness of a 0xRRGGBB int, 0..1.
+    local function luminance(c)
+        local r, g, b = math.floor(c / 65536) % 256, math.floor(c / 256) % 256, c % 256
+        return (0.299 * r + 0.587 * g + 0.114 * b) / 255
+    end
+    -- Pick the factor from the ACTUAL background colour rather than `&background`,
+    -- so it stays right even if a theme sets one and paints the other.
+    local function low_brightness(bg)
+        local v = luminance(bg) > 0.5 and LOW_BRIGHTNESS_LIGHT or LOW_BRIGHTNESS_DARK
+        return math.min(1, math.max(0, v)) -- clamp to a safe 0..1
+    end
 
     -- Blend two 0xRRGGBB ints; `a` = weight of fg.
     local function blend(fg, bg, a)
@@ -114,13 +135,23 @@ local function patch_access_styling()
         if gok and git and git.highlight and git.highlight ~= "NeoTreeGitIgnored" then
             base = attr(git.highlight, "fg")
         end
+        local is_dir = node.type == "directory"
+        local bg = attr("NeoTreeNormal", "bg") or attr("Normal", "bg") or 0x1f1f28
+        -- Resolve the node's NORMAL colour, so the dimmed version is just a blurred
+        -- form of it: files blur toward blurred-black, folders toward blurred-blue.
+        -- Several fallbacks are needed because a theme may leave the neo-tree groups
+        -- EMPTY (PaperColor does: NeoTreeFileName resolves to an empty highlight,
+        -- and Normal reported no fg at all). Before this, both lookups failed and
+        -- `base` fell through to a hardcoded kanagawa cream (#dcd7ba) -- which on a
+        -- light background blended to #e1deca, i.e. invisible. That, not the blend
+        -- factor, is why dotfiles were unreadable.
         base = base
-            or attr(node.type == "directory" and "NeoTreeDirectoryName" or "NeoTreeFileName", "fg")
-            or attr("Normal", "fg")
-            or 0xdcd7ba
-        local bg = attr("Normal", "bg") or 0x1f1f28
+            or attr(is_dir and "NeoTreeDirectoryName" or "NeoTreeFileName", "fg")
+            or attr(is_dir and "Directory" or "Normal", "fg")
+            -- last resort: plain text colour for the current background
+            or (luminance(bg) > 0.5 and 0x000000 or 0xdcd7ba)
         -- One highlight per (color, italic) combo, defined once and reused.
-        local dim = blend(base, bg, LOW_BRIGHTNESS)
+        local dim = blend(base, bg, low_brightness(bg))
         local key = string.format("NeoTreeAccess_%06x_%s", dim, hidden and "i" or "u")
         if not cache["d:" .. key] then
             vim.api.nvim_set_hl(0, key, { fg = dim, italic = hidden })

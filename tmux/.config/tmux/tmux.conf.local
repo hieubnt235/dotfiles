@@ -87,24 +87,24 @@ tmux_conf_24b_colour=auto
 #   - tmux_conf_theme_synchronized
 tmux_conf_theme=enabled
 
-# default theme
-tmux_conf_theme_colour_1="#080808"    # dark gray
-tmux_conf_theme_colour_2="#303030"    # gray
-tmux_conf_theme_colour_3="#8a8a8a"    # light gray
-tmux_conf_theme_colour_4="#00afff"    # light blue
-tmux_conf_theme_colour_5="#ffff00"    # yellow
-tmux_conf_theme_colour_6="#080808"    # dark gray
-tmux_conf_theme_colour_7="#e4e4e4"    # white
-tmux_conf_theme_colour_8="#080808"    # dark gray
-tmux_conf_theme_colour_9="#ffff00"    # yellow
-tmux_conf_theme_colour_10="#ff00af"   # pink
-tmux_conf_theme_colour_11="#5fff00"   # green
-tmux_conf_theme_colour_12="#8a8a8a"   # light gray
-tmux_conf_theme_colour_13="#e4e4e4"   # white
-tmux_conf_theme_colour_14="#080808"   # dark gray
-tmux_conf_theme_colour_15="#080808"   # dark gray
-tmux_conf_theme_colour_16="#d70000"   # red
-tmux_conf_theme_colour_17="#e4e4e4"   # white
+# Kanagawa WAVE -- matched to kitty/.config/kitty/current-theme.conf
+tmux_conf_theme_colour_1="#16161D"    # sumiInk0  - status bar background
+tmux_conf_theme_colour_2="#2A2A37"    # sumiInk4  - secondary bg (last window)
+tmux_conf_theme_colour_3="#C8C093"    # oldWhite  - status foreground
+tmux_conf_theme_colour_4="#7E9CD8"    # crystalBlue - current window / accent
+tmux_conf_theme_colour_5="#E6C384"    # carpYellow - bell / highlight
+tmux_conf_theme_colour_6="#16161D"    # sumiInk0  - text on left segment 1
+tmux_conf_theme_colour_7="#DCD7BA"    # fujiWhite - text on left segment 2
+tmux_conf_theme_colour_8="#16161D"    # sumiInk0  - text on left segment 3
+tmux_conf_theme_colour_9="#7E9CD8"    # crystalBlue - left seg 1 bg (session)
+tmux_conf_theme_colour_10="#D27E99"    # sakuraPink - left seg 2 bg
+tmux_conf_theme_colour_11="#98BB6C"    # springGreen - left seg 3 bg
+tmux_conf_theme_colour_12="#C8C093"    # oldWhite  - right seg 1 fg
+tmux_conf_theme_colour_13="#DCD7BA"    # fujiWhite - right seg 2 fg
+tmux_conf_theme_colour_14="#16161D"    # sumiInk0  - right seg 3 fg
+tmux_conf_theme_colour_15="#16161D"    # sumiInk0  - right seg 1 bg
+tmux_conf_theme_colour_16="#C34043"    # autumnRed - right seg 2 bg
+tmux_conf_theme_colour_17="#DCD7BA"    # fujiWhite - right seg 3 bg
 
 # default theme (ansi)
 #tmux_conf_theme_colour_1="colour0"
@@ -288,6 +288,25 @@ set -g @plugin 'tmux-plugins/tmux-cpu'
 set -g @plugin 'schasse/tmux-jump'
 # Smooth (animated) copy-mode scrolling -- fakes animation by stepping 1 line at a
 # time with micro-sleeps + easing (see the deep-dive; it can't be native in tmux).
+# -- session persistence (the tmux half of "reopen where I left off") -----------
+# resurrect = save/restore the layout; continuum = do it automatically.
+# Both are from the official tmux-plugins org -- this is the standard mechanism,
+# not a workaround. Saved state lives in ~/.local/share/tmux/resurrect/.
+#
+# WHAT IS RESTORED: sessions, windows, window names, pane splits + sizes, the
+# active pane/window, and each pane's working directory.
+# WHAT IS NOT: running programs. `@resurrect-processes 'false'` disables the
+# default relaunch list (vim/nvim/less/top/...), so panes come back as plain
+# shells sitting in the right directory instead of re-executing anything.
+# Neovim's own state is handled separately by persistence.nvim, so nvim is
+# restored by opening it and pressing <leader>qs -- not by tmux re-running it.
+set -g @plugin 'tmux-plugins/tmux-resurrect'
+set -g @plugin 'tmux-plugins/tmux-continuum'
+set -g @resurrect-processes 'false'
+set -g @continuum-restore 'on'
+set -g @continuum-save-interval '15'
+# manual controls if you ever want them: prefix + Ctrl-s = save, prefix + Ctrl-r = restore
+
 set -g @plugin 'azorng/tmux-smooth-scroll'
 set -g @smooth-scroll-easing "linear"   # match nvim snacks (linear); or sine/quad
 # The plugin binds C-d/C-u (and J/K and the wheel) to its "normal" amount, so THIS is
