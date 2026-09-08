@@ -70,3 +70,16 @@ vim.keymap.set("n", "<leader>glf", function() Snacks.picker.git_log_file() end, 
 
 -- gY (browse copy) removed -- LazyVim binds it, so delete it explicitly.
 pcall(vim.keymap.del, { "n", "x" }, "<leader>gY")
+
+-- <C-d>/<C-u> scroll by 'scroll', which defaults to HALF the window height --
+-- too short. Pin it to a fixed 15 lines instead. Done as an expr map returning a
+-- count rather than setting `scroll` once, because 'scroll' is window-local and
+-- gets reset to half-height on every window resize; recomputing per keypress
+-- keeps it at 15 after any split or resize.
+local SCROLL_LINES = 15
+vim.keymap.set({ "n", "v" }, "<C-d>", function()
+    return SCROLL_LINES .. "<C-d>"
+end, { expr = true, desc = "Scroll down " .. SCROLL_LINES .. " lines" })
+vim.keymap.set({ "n", "v" }, "<C-u>", function()
+    return SCROLL_LINES .. "<C-u>"
+end, { expr = true, desc = "Scroll up " .. SCROLL_LINES .. " lines" })

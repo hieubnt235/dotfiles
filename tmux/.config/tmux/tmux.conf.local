@@ -506,10 +506,10 @@ set -g monitor-bell off
 set -g mouse on
 
 # Use ONLY the default prefix C-b (prefer defaults: more docs, consistent everywhere).
-# Drop oh-my-tmux's second prefix C-a so Ctrl-a passes straight to apps (Claude resume,
-# shell start-of-line) with no `prefix C-a` dance.
-# set -gu prefix2
-#
+# oh-my-tmux sets a SECOND prefix C-a (tmux.conf:28); `-u` unsets it so Ctrl-a
+# passes straight through to apps (Claude resume, shell start-of-line) with no
+# `prefix C-a` dance.
+set -gu prefix2
 
 # Drop oh-my-tmux's `prefix Enter` copy-mode alias; keep the default `prefix [`.
 unbind -T prefix Enter
@@ -578,41 +578,52 @@ unbind -T prefix j
 unbind -T prefix k
 unbind -T prefix l
 
-# persistent nvim-style nav mode (no timeout). Press prefix once to enter,
-# then keep going with NO prefix until you manually exit:
-#   Shift + h/l   -> previous / next window   (move between tabs)
-#   Ctrl  + hjkl  -> move between panes        (move between splits)
-#   Alt   + hjkl  -> resize the current pane
-# exit with Escape, q, Enter, or the prefix key (C-a / C-b).
+# Pane / window navigation -- stock tmux behaviour, with hjkl added.
 #
-#   first press from the prefix table: act once AND enter nav mode
-bind H   previous-window \; switch-client -T nav
-bind L   next-window     \; switch-client -T nav
-bind C-h select-pane -L  \; switch-client -T nav
-bind C-j select-pane -D  \; switch-client -T nav
-bind C-k select-pane -U  \; switch-client -T nav
-bind C-l select-pane -R  \; switch-client -T nav
-bind M-h resize-pane -L 2 \; switch-client -T nav
-bind M-j resize-pane -D 2 \; switch-client -T nav
-bind M-k resize-pane -U 2 \; switch-client -T nav
-bind M-l resize-pane -R 2 \; switch-client -T nav
-#   inside nav mode: act and stay (loop forever, no timeout)
-bind -T nav H   previous-window  \; switch-client -T nav
-bind -T nav L   next-window      \; switch-client -T nav
-bind -T nav C-h select-pane -L   \; switch-client -T nav
-bind -T nav C-j select-pane -D   \; switch-client -T nav
-bind -T nav C-k select-pane -U   \; switch-client -T nav
-bind -T nav C-l select-pane -R   \; switch-client -T nav
-bind -T nav M-h resize-pane -L 2 \; switch-client -T nav
-bind -T nav M-j resize-pane -D 2 \; switch-client -T nav
-bind -T nav M-k resize-pane -U 2 \; switch-client -T nav
-bind -T nav M-l resize-pane -R 2 \; switch-client -T nav
-#   manual exit back to normal
-bind -T nav Escape switch-client -T root
-bind -T nav q      switch-client -T root
-bind -T nav Enter  switch-client -T root
-bind -T nav C-a    switch-client -T root
-bind -T nav C-b    switch-client -T root
+#   prefix + h/j/k/l  -> move between panes
+#   prefix + arrows   -> same thing (tmux's own default, kept)
+#   prefix + H/L      -> previous / next window
+#   prefix + M-hjkl   -> resize the current pane
+#
+# All of them use tmux's `-r` repeat flag: after the first press you can keep
+# tapping the same key WITHOUT the prefix until you pause for `repeat-time`
+# (600ms, set in tmux.conf), then it ends on its own.
+#
+# There is no custom key table and no "hold" mode. tmux only ever receives key
+# PRESSES -- there is no event for a modifier being released -- so a mode that
+# ends when you let go of Shift/Ctrl cannot be built. `-r` is the real thing.
+
+#   panes -- hjkl, repeatable
+bind -r h select-pane -L
+bind -r j select-pane -D
+bind -r k select-pane -U
+bind -r l select-pane -R
+
+#   panes -- arrows, repeatable (tmux's stock bindings, restated so the -r and
+#   the hjkl above stay in sync)
+bind -r Left  select-pane -L
+bind -r Down  select-pane -D
+bind -r Up    select-pane -U
+bind -r Right select-pane -R
+
+#   windows -- stock n/p keys, but repeatable like the pane keys above: tap
+#   prefix+n once, then keep tapping n/p with no prefix until you pause for
+#   repeat-time (600ms). Stock tmux does NOT set -r here; we do.
+#   (Stock `prefix l` is last-window, but l is pane-right above, so last-window
+#   stays on `prefix Tab` from tmux.conf.)
+bind -r n next-window
+bind -r p previous-window
+
+#   oh-my-tmux binds C-h/C-l to prev/next window (tmux.conf:102-103). Drop them
+#   so window switching is only n/p.
+unbind C-h
+unbind C-l
+
+#   resize -- repeatable
+bind -r M-h resize-pane -L 2
+bind -r M-j resize-pane -D 2
+bind -r M-k resize-pane -U 2
+bind -r M-l resize-pane -R 2
 
 # move status line to top
 #set -g status-position top

@@ -58,6 +58,21 @@ return {
                 if vim.g.persistence_no_autoload then
                     return -- escape hatch: :lua vim.g.persistence_no_autoload = true
                 end
+                -- Load nvim-lspconfig BEFORE sourcing the session.
+                --
+                -- Otherwise lazy.nvim loads it from the session's own `edit` ->
+                -- BufReadPre, and LazyVim's config calls vim.lsp.enable(), which
+                -- runs `:doautoall nvim.lsp.enable FileType` (vim/lsp.lua:646).
+                -- That sets `did_filetype`, and the `setf` that filetype
+                -- detection issues at BufReadPost is then a documented no-op --
+                -- detection computes "cpp" correctly and the answer is discarded.
+                -- The ACTIVE buffer therefore comes back with filetype "", so no
+                -- treesitter highlighting and no clangd attach. `badd` buffers are
+                -- unaffected: they load later, outside that nested autocommand
+                -- sequence, where the flag is back to 0.
+                pcall(function()
+                    require("lazy").load({ plugins = { "nvim-lspconfig" } })
+                end)
                 require("persistence").load()
             end,
         })

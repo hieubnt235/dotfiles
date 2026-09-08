@@ -27,6 +27,10 @@ return {
     -- "Boxed" active tab: a true 4-sided box is impossible (the tabline is 1 row
     -- tall, so no top/bottom border). We approximate it -- vertical bars on BOTH
     -- sides (custom separators) + underline (bottom) + a filled background block.
+    -- LazyVim sets always_show_bufferline = false (lazyvim/plugins/ui.lua:27), so
+    -- the tabline is hidden until a SECOND buffer is open -- the layout jumps as
+    -- soon as you open one more file. Keep it always visible.
+    opts.options.always_show_bufferline = true
     opts.options.indicator = { style = "underline" }
     opts.options.separator_style = { "│", "│" } -- left/right edges of every tab
 

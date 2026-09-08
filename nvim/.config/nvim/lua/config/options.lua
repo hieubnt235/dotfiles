@@ -3,10 +3,11 @@
 -- Add any additional options here
 vim.opt.shiftwidth = 4
 vim.opt.tabstop = 4 -- a tab displays as 4 columns (match CLion's default)
--- PaperColor is one colorscheme with two variants and picks between them from
--- `&background`, which Neovim defaults to "dark". Pin it light here (options.lua
--- loads before plugins) or you get the dark PaperColor.
-vim.o.background = "light"
+-- The default scheme is tokyonight-night (dark), matching kitty's Tokyo Night.
+-- Each tokyonight VARIANT sets `&background` itself, so nothing is pinned here.
+-- PaperColor is different: it is ONE scheme with two variants, chosen from
+-- `&background`. So `:colorscheme PaperColor` alone gives the DARK variant --
+-- set `:set background=light` first (or `:lua vim.o.background="light"`).
 -- Use neo-tree as the file tree (toggle with <leader>e). LazyVim auto-disables the
 -- snacks explorer when this is set, but keeps the snacks picker for find/grep.
 -- neo-tree docks cleanly in edgy: resizable + size persists across toggles.

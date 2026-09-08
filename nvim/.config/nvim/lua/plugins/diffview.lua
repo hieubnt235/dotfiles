@@ -30,7 +30,19 @@ return {
       "DiffviewMergeFiles",
       "DiffviewToggle",
     },
-    opts = {},
+    opts = {
+        -- The fork restores Diffview views from a :mksession sidecar
+        -- (~/.local/state/nvim/sessions/<session>.vim.diffview.json). On
+        -- SessionLoadPost it wipes diffview:// buffers and sets buflisted=false on
+        -- every LOCAL file a view had opened ("created_paths"). If the file you quit
+        -- on was one of those, it comes back UNLISTED: missing from the bufferline,
+        -- neo-tree opens a different file instead, and nothing attaches to it --
+        -- session.lua's own comment says it "drops into [No Name]". `:bd` + reopen
+        -- is the only way out. Upstream sindrets/diffview.nvim has no session module
+        -- at all, so this behaviour arrived with the fork. We use persistence.nvim
+        -- for sessions and do not need diffview tabs restored.
+        restore_session = false,
+    },
     keys = {
       -- Compare: working tree vs HEAD (prompt-free). Pass a ref in the cmdline
       -- for others, e.g. :DiffviewOpen main..HEAD  or  :DiffviewOpen HEAD~3

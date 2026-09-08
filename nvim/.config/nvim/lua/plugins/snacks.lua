@@ -43,19 +43,31 @@ return {
 
         -- Smooth scrolling (snacks bundles this; it's OFF by default, so enable it).
         -- Animates <C-d>/<C-u>, mouse wheel, n/N, etc. Terminal buffers are skipped.
-        -- `total` = the animation length in ms. Middle ground: slower than the old
-        -- 70 (felt too fast to follow) but well under the snacks default of 250
-        -- (which feels sluggish). Raise `total` for slower, lower for snappier.
+        -- `total` = the animation length in ms. Raise for slower, lower for snappier.
+        -- <C-d>/<C-u> travel 3/4 of a window (see config/keymaps.lua).
+        -- `total` = how long the whole motion takes, in ms. THIS is the speed
+        -- knob: raise it to slow the scroll down, lower it for snappier.
+        -- `step` is only the frame interval. Snacks' own defaults are 200 / 50.
         scroll = {
             enabled = true,
             animate = {
-                duration = { step = 10, total = 130 },
+                duration = { step = 10, total = 100 },
                 easing = "linear",
             },
-            -- faster variant when you repeat-scroll quickly (e.g. mashing <C-d>)
+            -- Used when <C-d> repeats (held down). Much shorter than the single
+            -- press above, otherwise each frame queues behind the last and the
+            -- scroll lags behind the key. `delay` = ms of repeating before this
+            -- kicks in; snacks defaults that to 100, which is too late to help.
             animate_repeat = {
-                delay = 10, -- delay in ms before using the repeat animation
-                duration = { step = 5, total = 90 },
+                -- Snacks marks a scroll as a "repeat" only when it arrives
+                -- within `delay` ms of the previous one (scroll.lua:305):
+                --     is_repeat = repeat_delta <= animate_repeat.delay
+                -- Key auto-repeat fires every ~30-50ms, so the old value of 10
+                -- never matched and this whole block was dead -- holding <C-d>
+                -- kept using the slow single-press animation. 100 is snacks' own
+                -- default and comfortably covers the key-repeat interval.
+                delay = 100,
+                duration = { step = 4, total = 40 },
                 easing = "linear",
             },
             -- what buffers to animate

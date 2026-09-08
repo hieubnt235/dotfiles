@@ -150,3 +150,29 @@ do
         require("which-key").add({ { "<leader>P", group = "preview" } })
     end)
 end
+
+-- Clear vim.lsp.log at 1 GB.
+--
+-- Neovim already notices the file getting huge -- vim/lsp/log.lua:117 checks
+-- `size > 1e9` -- but all it does is print a warning, so the file just keeps
+-- growing. Nothing rotates it, and every line a server writes to stderr is
+-- recorded as an ERROR entry regardless of log level, so a chatty server (clangd
+-- logs one line per request at its default --log=info) grows it fast.
+--
+-- Same threshold, but clear instead of warn. Everything else stays default: no
+-- server log levels overridden, no truncation during normal use.
+do
+    local CAP = 1e9 -- matches vim/lsp/log.lua:117
+    local ok, path = pcall(vim.lsp.log.get_filename)
+    if ok and path then
+        local st = vim.uv.fs_stat(path)
+        if st and st.size > CAP then
+            -- "w" truncates. Servers open the log in append mode, so a running
+            -- instance keeps writing correctly at the new end of file.
+            local f = io.open(path, "w")
+            if f then
+                f:close()
+            end
+        end
+    end
+end

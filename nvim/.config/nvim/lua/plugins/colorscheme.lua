@@ -1,4 +1,5 @@
--- Colorscheme: PaperColor, light variant. The ONLY theme installed.
+-- Colorscheme: PaperColor (light) by default. tokyonight is kept installed and
+-- switchable with :colorscheme -- see the spec below for the variant names.
 --
 -- PaperColor is a vimscript scheme: it exposes ONE name and picks light vs dark
 -- from `&background`, so `vim.o.background = "light"` is pinned in
@@ -28,6 +29,18 @@ return {
                     },
                 },
             }
+
+            -- PaperColor is ONE scheme with two variants, chosen from `&background`.
+            -- Nothing pins that any more (the default is tokyonight-night, which
+            -- sets background=dark), so `:colorscheme PaperColor` would give the
+            -- DARK variant. ColorSchemePre fires BEFORE the scheme loads, which is
+            -- the only point where flipping `background` still affects the result.
+            vim.api.nvim_create_autocmd("ColorSchemePre", {
+                pattern = "PaperColor",
+                callback = function()
+                    vim.o.background = "light"
+                end,
+            })
 
             -- PaperColor paints methods AND class members the same near-black
             -- (`Function` #444444, `@variable.member` #14161b), so you cannot tell
@@ -65,15 +78,43 @@ return {
                         "@lsp.type.property",
                         "@lsp.type.field",
                     }, MEMBER)
+
+                    -- flash.nvim (`s`) is unreadable on PaperColor: it links
+                    -- FlashMatch -> Search and FlashLabel -> Substitute, and
+                    -- PaperColor defines those two IDENTICALLY (#444444 on
+                    -- #ffff5f). Label and match end up the same yellow, so you
+                    -- cannot tell which character to press. Give each its own
+                    -- colour: label = red (the key you type), match = blue
+                    -- (where you could go), current = the original yellow.
+                    local hl = function(g, o)
+                        vim.api.nvim_set_hl(0, g, o)
+                    end
+                    hl("FlashLabel", { fg = "#ffffff", bg = "#d70000", bold = true })
+                    hl("FlashMatch", { fg = "#444444", bg = "#d7d7ff" })
+                    hl("FlashCurrent", { fg = "#444444", bg = "#ffff5f" })
+                    hl("FlashBackdrop", { fg = "#a8a8a8" })
                 end,
             })
         end,
     },
 
-    -- LazyVim ships its own tokyonight + catppuccin specs, so removing them from
-    -- this file is not enough -- they have to be disabled explicitly or lazy.nvim
-    -- keeps reinstalling them. `enabled = false` lets `:Lazy clean` delete them.
-    { "folke/tokyonight.nvim", enabled = false },
+    -- tokyonight is kept AVAILABLE (not active) so it can be switched to with
+    -- :colorscheme. lazy = false because lazy.nvim has no `colorscheme` trigger --
+    -- an unloaded plugin's `colors/` dir is not on the runtimepath, so :colorscheme
+    -- would fail with E185. priority is left below PaperColor's 1000, so PaperColor
+    -- still wins at startup.
+    --   :colorscheme tokyonight-night   (dark)
+    --   :colorscheme tokyonight-storm   (dark, softer)
+    --   :colorscheme tokyonight-moon    (dark, cooler)
+    --   :colorscheme tokyonight-day     (light)
+    --   :colorscheme PaperColor         (back to the default)
+    -- NOTE: options.lua pins vim.o.background = "light" for PaperColor. Each
+    -- tokyonight VARIANT sets its own background, so the named variants above work
+    -- regardless; bare `:colorscheme tokyonight` follows the pinned light instead.
+    { "folke/tokyonight.nvim", lazy = false, priority = 900 },
+
+    -- LazyVim ships a catppuccin spec too; disabled explicitly or lazy.nvim keeps
+    -- reinstalling it. `enabled = false` lets `:Lazy clean` delete it.
     { "catppuccin/nvim", enabled = false },
 
     {
