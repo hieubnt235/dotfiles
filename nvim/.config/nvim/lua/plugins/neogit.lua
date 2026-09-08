@@ -5,4 +5,9 @@ return {
     "NeogitOrg/neogit",
     dependencies = { "nvim-lua/plenary.nvim" },
     cmd = "Neogit",
+    opts = {
+        -- Pin the layer-3 viewer instead of relying on auto-detect order.
+        -- Neogit also supports "codediff"; we deliberately use diffview.
+        diff_viewer = "diffview",
+    },
 }
