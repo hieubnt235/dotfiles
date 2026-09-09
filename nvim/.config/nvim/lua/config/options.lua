@@ -56,3 +56,34 @@ vim.api.nvim_set_hl(0, "LspInactiveRegion", { link = "Normal" })
 --         vim.opt_local.expandtab = true -- optional, ensures spaces instead of tabs
 --     end,
 -- })
+
+-- `nvim /path/to/project` must make THAT the root, not the shell's cwd.
+--
+-- Opening nvim with a directory argument does NOT change cwd -- the directory is
+-- only an argument, so `cd /tmp && nvim ~/proj` leaves cwd at /tmp. Everything
+-- that keys off cwd then points at the wrong place: the pickers, the file tree,
+-- clangd's --compile-commands-dir, and persistence's session name (sessions were
+-- being saved under the launch directory rather than the project).
+--
+-- So: adopt the directory argument as cwd. Runs here, during startup, because it
+-- must happen BEFORE the VimEnter hooks that read cwd -- persistence resolves its
+-- session file there. Only for a SINGLE directory argument: `nvim file.cpp` must
+-- not move cwd, and `nvim` with no arguments has nothing to adopt.
+if vim.fn.argc(-1) == 1 then
+    local arg = vim.fn.argv(0)
+    if type(arg) == "string" and arg ~= "" and vim.fn.isdirectory(arg) == 1 then
+        vim.cmd.cd(vim.fn.fnamemodify(arg, ":p"))
+    end
+end
+
+-- Project root = where nvim was opened. Always.
+--
+-- LazyVim's default is `{ "lsp", { ".git", "lua" }, "cwd" }` -- the ATTACHED LSP
+-- CLIENT'S root wins over everything (lazyvim/util/root.lua:18). So opening a
+-- buffer under pkgs/sb-web (a .vue file, or a .cpp) made vtsls/clangd report
+-- pkgs/sb-web as root, and the snacks pickers then searched only inside it --
+-- `nvim .` at the top, yet <leader>ff could not see src/main.cpp.
+--
+-- "cwd" alone: pickers, grep and the file tree all stay anchored to the directory
+-- you started nvim in. Nothing walks up or sideways.
+vim.g.root_spec = { "cwd" }

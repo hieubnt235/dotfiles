@@ -101,6 +101,26 @@ return {
                     --
                     -- "clangd" stays unqualified: mason prepends its bin dir to PATH,
                     -- so this picks up the pinned 23.1.0 without an absolute path.
+                    -- The root is ALWAYS where nvim was opened -- you run `nvim .`
+                    -- at the project top, so that is the project, full stop.
+                    --
+                    -- Without this, lspconfig walks up from each FILE looking for
+                    -- root_markers, and `compile_commands.json` is one of them
+                    -- (nvim-lspconfig/lsp/clangd.lua:68-76). The per-package
+                    -- switching symlink at pkgs/<pkg>/compile_commands.json therefore
+                    -- looks like a project root, so opening pkgs/sb-web/src/cpp/*.cpp
+                    -- started a SECOND clangd rooted there -- its own
+                    -- --compile-commands-dir, its own module cache, its own flags.
+                    -- Verified: root_dir came back as .../pkgs/sb-web for that file
+                    -- while cwd was the project top.
+                    --
+                    -- Defining root_dir disables root_markers entirely
+                    -- (|lsp-root_markers|: "Unused if root_dir is defined"), which is
+                    -- exactly what we want -- no marker hunting at all. The function
+                    -- form MUST call on_dir, or the server never attaches.
+                    root_dir = function(_, on_dir)
+                        on_dir(vim.uv.cwd())
+                    end,
                     cmd = function(dispatchers, config)
                         local cmd = {
                             "clangd",

@@ -206,5 +206,65 @@ return {
                 end
             end
         end
+
+        -- Keyboard resize for edgy PANELS, on the same <C-arrows> used everywhere
+        -- else. Overrides LazyVim's entries (extras/ui/edgy.lua:56-65), which call
+        -- edgy's `win:resize` -- that reads the STORED `vim.w[win].edgy_<dim>`
+        -- rather than the visible size (edgy/window.lua:211), so once a panel hits
+        -- its floor the stored value keeps sinking and further presses do nothing.
+        -- Measured before this override: <C-Down> in the terminal panel went
+        -- 15 -> 15, in every mode. `step` bases each press on the ACTUAL current
+        -- size, so shrinks self-heal at the floor and the next grow takes effect.
+        --
+        -- Key names must match LazyVim's spelling exactly ("<c-Up>", not "<C-Up>")
+        -- so these REPLACE those entries instead of racing them in the same table.
+        --
+        -- Which axis actually moves depends on the edge the panel is docked to:
+        -- the bottom terminal only has height (it already spans the full width);
+        -- the left sidebar's width is its thickness, while its height is how the
+        -- stacked panels share it.
+        opts.keys = opts.keys or {}
+        opts.keys["<c-Right>"] = function(win)
+            step(win, "width", 2)
+        end
+        opts.keys["<c-Left>"] = function(win)
+            step(win, "width", -2)
+        end
+        opts.keys["<c-Up>"] = function(win)
+            step(win, "height", 2)
+        end
+        opts.keys["<c-Down>"] = function(win)
+            step(win, "height", -2)
+        end
+
+        -- Same resize, in the modes edgy does not cover. edgy only ever registers
+        -- its keys in NORMAL mode -- `actions.lua:19` hardcodes "n" -- so inside
+        -- the bottom terminal, where you are in TERMINAL mode by definition, none
+        -- of the above applies and a plain `:resize` is snapped back by edgy.
+        --
+        -- Height only: <C-Left>/<C-Right> are word-motion in insert
+        -- (insert.txt:363-365) and readline's backward/forward-word in a terminal,
+        -- so they stay untouched. <C-Up>/<C-Down> are unbound in every mode and in
+        -- readline, so taking them costs nothing.
+        --
+        -- <Cmd>/callback keeps the current mode: insert cursor, visual selection
+        -- and terminal mode all survive the resize.
+        local function resize_here(axis, delta)
+            local w = vim.api.nvim_get_current_win()
+            local win = package.loaded["edgy"] and require("edgy.window").cache[w]
+            if win then
+                step(win, axis, delta)
+            else
+                vim.cmd(("%sresize %+d"):format(axis == "width" and "vertical " or "", delta))
+            end
+        end
+        for _, mode in ipairs({ "i", "v", "t" }) do
+            vim.keymap.set(mode, "<C-Up>", function()
+                resize_here("height", 2)
+            end, { silent = true, desc = "Increase Window Height" })
+            vim.keymap.set(mode, "<C-Down>", function()
+                resize_here("height", -2)
+            end, { silent = true, desc = "Decrease Window Height" })
+        end
     end,
 }
