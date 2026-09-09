@@ -1,7 +1,6 @@
 -- Move the code Outline panel from the RIGHT edge (LazyVim default) to the LEFT
 -- sidebar, then order the left panel as Filesystem / Outline / Buffers / Git with
--- short titles. Also set default sidebar widths + the Alt+HJKL / mouse-drag resize
--- behavior.
+-- short titles. Also set default sidebar widths + the mouse-drag resize behavior.
 
 -- Minimum panel size, so a shrink can't collapse a panel into a useless sliver
 -- (CLion-style: a divider has a floor; to hide a panel you TOGGLE it -- <leader>e,
@@ -206,26 +205,6 @@ return {
                     end
                 end
             end
-        end
-
-        -- Resize panels with Alt+HJKL. These edgy `opts.keys` are BUFFER-LOCAL, so
-        -- they only apply while focused inside an edgy panel and route through the
-        -- `step` helper at the top of this file (shared with the mouse-drag
-        -- handler). (The redundant global Alt+h/l scroll was removed from
-        -- options.lua, so there's no conflict in normal files.)
-        --   H = narrower, L = wider, J = shorter, K = taller
-        opts.keys = opts.keys or {}
-        opts.keys["<A-l>"] = function(win)
-            step(win, "width", 2)
-        end
-        opts.keys["<A-h>"] = function(win)
-            step(win, "width", -2)
-        end
-        opts.keys["<A-k>"] = function(win)
-            step(win, "height", 2)
-        end
-        opts.keys["<A-j>"] = function(win)
-            step(win, "height", -2)
         end
     end,
 }

@@ -42,6 +42,38 @@ return {
         -- at all, so this behaviour arrived with the fork. We use persistence.nvim
         -- for sessions and do not need diffview tabs restored.
         restore_session = false,
+        -- Label each diff window with the revision it holds, so "which side is
+        -- FROM and which is TO" is never a guess. Native option
+        -- (|diffview-config-view.x.winbar_info|), off by default for these two
+        -- views; `merge_tool` already ships with it on.
+        view = {
+            default = { winbar_info = true },
+            file_history = { winbar_info = true },
+        },
+        -- `q` closes the view. This is the plugin's OWN convention extended, not
+        -- an override: it already binds q -> actions.close in its option, help and
+        -- commit-log panels; those are simply the only panels upstream bothered to
+        -- bind. Same key, in the two places it left unbound.
+        --
+        -- DiffviewClose rather than `:q` or actions.close: a diffview tab is
+        -- several windows, and tearing one down leaves orphaned windows and stale
+        -- state (see the <leader>gd note below). DiffviewClose is the full
+        -- teardown -- the same one DiffviewToggle calls -- so <leader>gd stays in
+        -- sync and reopens cleanly afterwards.
+        --
+        -- Scoped to diffview's own buffers, so `q` (record macro) is untouched
+        -- everywhere else.
+        keymaps = {
+            view = {
+                { "n", "q", "<cmd>DiffviewClose<cr>", { desc = "Close diffview" } },
+            },
+            file_panel = {
+                { "n", "q", "<cmd>DiffviewClose<cr>", { desc = "Close diffview" } },
+            },
+            file_history_panel = {
+                { "n", "q", "<cmd>DiffviewClose<cr>", { desc = "Close diffview" } },
+            },
+        },
     },
     keys = {
       -- Compare: working tree vs HEAD (prompt-free). Pass a ref in the cmdline

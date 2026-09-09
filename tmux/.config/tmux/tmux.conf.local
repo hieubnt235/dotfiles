@@ -583,7 +583,7 @@ unbind -T prefix l
 #   prefix + h/j/k/l  -> move between panes
 #   prefix + arrows   -> same thing (tmux's own default, kept)
 #   prefix + H/L      -> previous / next window
-#   prefix + M-hjkl   -> resize the current pane
+#   (resize: tmux's own defaults -- prefix + M-arrows by 5, C-arrows by 1)
 #
 # All of them use tmux's `-r` repeat flag: after the first press you can keep
 # tapping the same key WITHOUT the prefix until you pause for `repeat-time`
@@ -618,12 +618,6 @@ bind -r p previous-window
 #   so window switching is only n/p.
 unbind C-h
 unbind C-l
-
-#   resize -- repeatable
-bind -r M-h resize-pane -L 2
-bind -r M-j resize-pane -D 2
-bind -r M-k resize-pane -U 2
-bind -r M-l resize-pane -R 2
 
 # move status line to top
 #set -g status-position top
