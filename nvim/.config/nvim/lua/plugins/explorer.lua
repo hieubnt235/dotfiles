@@ -113,7 +113,11 @@ local function patch_access_styling()
                 break
             end
             local pid = n:get_parent_id()
-            n = pid and tree:get_node(pid) or nil
+            -- Raw table lookup, NOT tree:get_node(): this runs mid-render, and
+            -- nui (>= 3d425a7) memoizes its line->node map after 2 get_node
+            -- calls. Built mid-render it goes stale, so `l` on one line acts on
+            -- a different node (cursor on circuit/ -> toggles cli/).
+            n = pid and tree.nodes.by_id[pid] or nil
         end
         return false
     end
@@ -185,18 +189,13 @@ return {
                 mappings = {
                     ["F"] = "find_in_dir",
                     ["G"] = "grep_in_dir",
-                    -- Give the tree NORMAL vim search back. neo-tree maps these
+                    -- Give the tree these NORMAL vim keys back. neo-tree maps them
                     -- to its own fuzzy machinery, which shadows the builtins:
-                    --   / -> fuzzy_finder   # -> fuzzy_sorter   f -> filter_on_submit
+                    --   # -> fuzzy_sorter   f -> filter_on_submit
                     -- Mapping to "noop" makes neo-tree skip the mapping entirely
                     -- (renderer.lua:981), so the native key reaches the buffer:
-                    -- / searches, n/N step through matches, # searches the word
-                    -- under the cursor, f jumps to a character on the line.
-                    -- / is neo-tree's fuzzy_finder, same as stock. The only
-                    -- change is keep_filter_on_submit: <CR> now leaves the tree
-                    -- filtered with the cursor on the match, instead of clearing
-                    -- the filter and re-collapsing everything.
-                    ["/"] = { "fuzzy_finder", config = { keep_filter_on_submit = true } },
+                    -- # searches the word under the cursor, f jumps to a
+                    -- character on the line. / stays neo-tree's stock fuzzy_finder.
                     ["#"] = "noop",
                     ["f"] = "noop",
                     -- s was open_vsplit, which shadowed flash.nvim's jump. Free
@@ -204,21 +203,9 @@ return {
                     ["s"] = "noop",
                     -- vsplit keeps a home so it is not lost. S is still split.
                     ["<C-v>"] = "open_vsplit",
-                    -- Esc clears an active filter (neo-tree only had that on
-                    -- <C-x>). With no filter active it falls through to the
-                    -- stock `cancel`, so closing a preview still works.
-                    ["<esc>"] = "clear_filter_or_cancel",
                 },
             })
             opts.filesystem.commands = vim.tbl_deep_extend("force", opts.filesystem.commands or {}, {
-                clear_filter_or_cancel = function(state)
-                    local cmds = require("neo-tree.sources.filesystem.commands")
-                    if state.search_pattern and state.search_pattern ~= "" then
-                        cmds.clear_filter(state)
-                    else
-                        cmds.cancel(state)
-                    end
-                end,
                 find_in_dir = function(state)
                     local node = state.tree:get_node()
                     local path = node:get_id()

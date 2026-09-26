@@ -76,10 +76,16 @@ return {
         },
     },
     keys = {
-      -- Compare: working tree vs HEAD (prompt-free). Pass a ref in the cmdline
-      -- for others, e.g. :DiffviewOpen main..HEAD  or  :DiffviewOpen HEAD~3
+      -- Plain :DiffviewOpen (no ref) = `git status` as diffs, two lists:
+      --   "Changes"        = INDEX -> WORKING TREE  (red in git status: not staged)
+      --   "Staged changes" = HEAD  -> INDEX         (green: what the next commit gets)
+      -- INDEX = the staging area (`git add`). The ONLY diffview view where
+      -- staging works: s / - stages a red file, unstages a green one; S / U =
+      -- all. With a ref (e.g. :DiffviewOpen HEAD for a single HEAD -> working
+      -- tree list, like CLion) s / - silently do nothing (source-verified).
+      -- Other refs: :DiffviewOpen main..HEAD  or  :DiffviewOpen HEAD~3
       --
-      -- CONFLICTS: with a merge/rebase in progress this same command opens the
+      -- CONFLICTS: with a merge/rebase in progress this same view opens the
       -- 3-way merge tool automatically. In a conflicted file:
       --   ]x / [x            jump between conflicts
       --   <leader>co / ct    take OURS / THEIRS
@@ -90,38 +96,49 @@ return {
       -- file panel (only in the option/help/commit-log sub-panels), and `:q`
       -- tears down one window of a multi-window tab, leaving orphaned windows
       -- and stale state. DiffviewToggle is the fork's open-or-close-in-one.
-      -- Top-level shortcut for the same toggle, so the common case is one key.
+      -- Opened through diffview_from.open so a sidebar never swaps the sides.
       -- The snacks hunk picker lives at <leader>ghd (the hunk group) instead.
-      { "<leader>gd", "<cmd>DiffviewToggle<cr>", desc = "toggle diff (diffview)" },
-      -- <leader>gD<x> = pick the FROM side, then a branch picker gives the TO
-      -- side. <leader>gd is the shortcut for the common case (HEAD, no picker).
-      --   Dw  working tree -> branch    :DiffviewOpen <ref>
-      --   Ds  staged       -> branch    :DiffviewOpen --staged <ref>
-      --   Dh  HEAD         -> branch    :DiffviewOpen HEAD..<ref>
-      --   Db  branch       -> branch    :DiffviewOpen <a>..<b>  (two pickers)
+      {
+        "<leader>gd",
+        function() require("diffview_from").open("DiffviewToggle") end,
+        desc = "head -> index -> working tree (diffview)",
+      },
+      -- <leader>gD<x> = diff against any branch/commit, picked (branch, then commit).
+      -- <leader>gd is the shortcut for the common case (uncommitted changes, no picker).
+      -- Diffview always puts working tree / INDEX on the RIGHT; Ctrl-w x in a
+      -- diff window swaps the sides on screen if you want the other order.
+      --   Dw  any -> working tree   :DiffviewOpen <ref>
+      --   Ds  any -> staged         :DiffviewOpen --staged <ref>
+      --   Da  any -> any            :DiffviewOpen <a>..<b>  (two pickers)
       {
         "<leader>gDw",
         function() require("diffview_from").pick("working") end,
-        desc = "working tree -> branch/commit (diffview)",
+        desc = "any -> working tree",
       },
       {
         "<leader>gDs",
         function() require("diffview_from").pick("staged") end,
-        desc = "staged -> branch/commit (diffview)",
+        desc = "any -> staged",
       },
       {
-        "<leader>gDh",
-        function() require("diffview_from").pick("head") end,
-        desc = "head -> branch/commit (diffview)",
-      },
-      {
-        "<leader>gDb",
+        "<leader>gDa",
         function() require("diffview_from").pick_two() end,
-        desc = "branch/commit -> branch/commit (diffview)",
+        desc = "any -> any",
       },
       -- History
-      { "<leader>gLb", "<cmd>DiffviewFileHistory<cr>", desc = "whole branch (diffview)" },
-      { "<leader>gLf", "<cmd>DiffviewFileHistory %<cr>", desc = "current file (diffview)" },
+      -- Through diffview_from.open like every diffview key: from a sidebar,
+      -- focus the editor first (else edgy swaps the sides; and `%` would be
+      -- the tree's buffer instead of the file you were editing).
+      {
+        "<leader>gLb",
+        function() require("diffview_from").open("DiffviewFileHistory") end,
+        desc = "whole branch (diffview)",
+      },
+      {
+        "<leader>gLf",
+        function() require("diffview_from").open("DiffviewFileHistory %") end,
+        desc = "current file (diffview)",
+      },
     },
   },
   -- LazyVim binds <leader>gd to snacks' git_diff picker and <leader>gD to the
@@ -139,7 +156,7 @@ return {
     "folke/which-key.nvim",
     opts = {
       spec = {
-        { "<leader>gD", group = "diff from-to" },
+        { "<leader>gD", group = "diff from-to (diffview)" },
         { "<leader>gl", group = "log" },
         { "<leader>gL", group = "log diff" },
       },

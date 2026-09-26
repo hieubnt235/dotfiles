@@ -1,12 +1,43 @@
 -- Helper for the <leader>gD maps in lua/plugins/diffview.lua: "diff from-to".
 --
--- Each key fixes the FROM side; the TO side is chosen interactively. Choosing a
+-- Each key fixes one side; the other is a ref chosen interactively. Choosing a
 -- ref is two steps, because snacks pickers have one selectable list and the
 -- right-hand pane is a preview, not a list -- so a branch's commits cannot be
 -- picked from the branch picker itself. Step 1 picks the branch, step 2 picks a
 -- commit on it. The branch tip is the first entry, so taking the top commit is
 -- the same as "just this branch".
 local M = {}
+
+---Focus a normal editor window before opening any diffview.
+---
+---diffview opens its tab with `:tab split` of the CURRENT window. From a
+---sidebar (neo-tree, Outline, a terminal panel) that copies the sidebar buffer
+---into the new tab, edgy grabs it while diffview is still building its
+---windows, and the two sides come out swapped: working tree on the LEFT.
+---(A/B verified: same keys with edgy's autocmds cleared = correct sides.)
+---A typed :DiffviewOpen from a sidebar still hits this; the keys don't.
+function M.focus_editor()
+  local function normal(win)
+    return vim.api.nvim_win_get_config(win).relative == ""
+      and vim.bo[vim.api.nvim_win_get_buf(win)].buftype == ""
+  end
+  if normal(vim.api.nvim_get_current_win()) then
+    return
+  end
+  for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+    if normal(win) then
+      vim.api.nvim_set_current_win(win)
+      return
+    end
+  end
+end
+
+---Run a diffview command from a normal editor window (see focus_editor).
+---@param cmd string
+function M.open(cmd)
+  M.focus_editor()
+  vim.cmd(cmd)
+end
 
 ---Branch picker, then a commit picker scoped to that branch.
 ---@param label string shown in both picker titles
@@ -48,23 +79,25 @@ local function pick_ref(label, cb)
   })
 end
 
----@param from "working"|"staged"|"head"
-local function cmd_for(from, ref)
-  if from == "staged" then
-    -- index vs ref. diffview's --staged takes an optional rev, default HEAD.
+---Diffview always puts the working tree / INDEX on the RIGHT (measured from a
+---normal window, 2026-09-26), so the picked ref is the LEFT side.
+---Want the other order? Ctrl-w x in a diff window swaps the two on screen.
+---@param what "working"|"staged"
+local function cmd_for(what, ref)
+  if what == "staged" then
+    -- ref -> INDEX. diffview's --staged takes an optional rev, default HEAD.
     return ("DiffviewOpen --staged %s"):format(ref)
-  elseif from == "head" then
-    return ("DiffviewOpen HEAD..%s"):format(ref)
   end
-  -- working tree vs ref -- the CLion "Compare with Branch" comparison.
+  -- ref -> working tree -- the CLion "Compare with Branch" comparison. The
+  -- right side is the real file on disk: editable, LSP attached.
   return ("DiffviewOpen %s"):format(ref)
 end
 
----FROM is fixed (working tree / staged / HEAD); pick the TO ref.
----@param from "working"|"staged"|"head"
-function M.pick(from)
-  pick_ref("TO", function(sha)
-    vim.cmd(cmd_for(from, sha))
+---Pick a ref and diff it against the working tree / INDEX.
+---@param what "working"|"staged"
+function M.pick(what)
+  pick_ref("FROM", function(sha)
+    M.open(cmd_for(what, sha))
   end)
 end
 
@@ -73,7 +106,7 @@ end
 function M.pick_two()
   pick_ref("FROM", function(a)
     pick_ref("TO", function(b)
-      vim.cmd(("DiffviewOpen %s..%s"):format(a, b))
+      M.open(("DiffviewOpen %s..%s"):format(a, b))
     end)
   end)
 end

@@ -1,5 +1,7 @@
 -- <leader>g label convention: lowercase, with the owning plugin in parens.
 -- The "Git " prefix is dropped -- the group is already called git.
+-- When EVERY key in a subgroup belongs to one plugin, the plugin goes on the
+-- group label once (e.g. "diff from-to (diffview)") and the keys drop it.
 --
 -- These entries are defined by LazyVim as lazy `keys` specs, so they must be
 -- overridden as keys specs too; a plain vim.keymap.set gets clobbered when lazy

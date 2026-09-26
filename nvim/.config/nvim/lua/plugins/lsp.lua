@@ -124,8 +124,8 @@ return {
                     cmd = function(dispatchers, config)
                         local cmd = {
                             "clangd",
-                            "--background-index",
-                            "-j=8",
+                            -- "--background-index",
+                            "-j=12",
                             "--clang-tidy",
                             "--header-insertion=iwyu",
                             "--completion-style=detailed",
