@@ -18,7 +18,14 @@ vim.g.lazyvim_python_lsp = "basedpyright"
 -- looks identical everywhere. (Was disabled before, which is why nvim and CLion
 -- disagreed on tab width.)
 vim.g.editorconfig = true
-vim.g.lazyvim_prettier_needs_config = false
+-- Prettier only in projects that configure it (.prettierrc etc.); everywhere
+-- else oxfmt is the one formatter (lua/plugins/oxc.lua). With this false,
+-- prettier ALSO ran on every JS/TS/JSON/Vue save, right before oxfmt.
+vim.g.lazyvim_prettier_needs_config = true
+-- eslint lints (when a project picks it, see lua/plugins/oxc.lua) but never
+-- rewrites the file on save: the one formatter does that. Its fixes are still
+-- available as code actions.
+vim.g.lazyvim_eslint_auto_format = false
 vim.opt.conceallevel = 0
 vim.opt.concealcursor = ""
 -- NOTE: do NOT set `vim.o.winborder` here. It is global and repaints every float,
