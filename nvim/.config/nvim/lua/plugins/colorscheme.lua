@@ -1,25 +1,26 @@
--- Colorscheme: PaperColor (light) by default. tokyonight is kept installed and
--- switchable with :colorscheme -- see the spec below for the variant names.
+-- Colorscheme: tokyonight-night (dark) by default, matching kitty's Tokyo Night
+-- (kitty/.config/kitty/current-theme.conf). PaperColor (light) is kept installed
+-- and switchable with :colorscheme:
+--   :colorscheme tokyonight-night   (the default)
+--   :colorscheme tokyonight-storm   (dark, softer)
+--   :colorscheme tokyonight-moon    (dark, cooler)
+--   :colorscheme tokyonight-day     (light)
+--   :colorscheme PaperColor         (light)
 --
--- PaperColor is a vimscript scheme: it exposes ONE name and picks light vs dark
--- from `&background`, so `vim.o.background = "light"` is pinned in
--- config/options.lua -- without it you get the dark variant.
---   :colorscheme PaperColor
---
--- Options must be set BEFORE the scheme loads, hence `init` (which lazy.nvim runs
--- at startup) rather than `opts` -- a vimscript plugin has no setup().
---
--- ITALICS ARE OFF ON PURPOSE (`allow_italic = 0`). This is a font-metrics
--- constraint, not taste: JetBrains Mono advances 0.600 em per glyph but its
--- ITALIC ink reaches 0.658 em, and kitty clips each glyph to its cell. Italics
--- would need `modify_font cell_width 110%` in kitty.conf, and that 10% is added to
--- EVERY character on screen, which reads as badly spaced text. The two settings
--- are COUPLED: turning italics back on requires raising cell_width to 110%.
+-- ITALICS ARE OFF ON PURPOSE, in BOTH schemes (tokyonight `styles`, PaperColor
+-- `allow_italic = 0`). This is a font-metrics constraint, not taste: JetBrains
+-- Mono advances 0.600 em per glyph but its ITALIC ink reaches 0.658 em, and kitty
+-- clips each glyph to its cell. Italics would need `modify_font cell_width 110%`
+-- in kitty.conf, and that 10% is added to EVERY character on screen, which reads
+-- as badly spaced text. The two settings are COUPLED: turning italics back on
+-- requires raising cell_width to 110%.
 return {
     {
         "NLKNguyen/papercolor-theme",
+        -- Not the default any more, but lazy = false keeps its colors/ dir on the
+        -- runtimepath so it stays listed in `:colorscheme <Tab>`.
         lazy = false,
-        priority = 1000,
+        priority = 900,
         init = function()
             vim.g.PaperColor_Theme_Options = {
                 theme = {
@@ -31,10 +32,10 @@ return {
             }
 
             -- PaperColor is ONE scheme with two variants, chosen from `&background`.
-            -- Nothing pins that any more (the default is tokyonight-night, which
-            -- sets background=dark), so `:colorscheme PaperColor` would give the
-            -- DARK variant. ColorSchemePre fires BEFORE the scheme loads, which is
-            -- the only point where flipping `background` still affects the result.
+            -- The default is tokyonight-night, which sets background=dark, so a
+            -- plain `:colorscheme PaperColor` would give the DARK variant.
+            -- ColorSchemePre fires BEFORE the scheme loads, which is the only
+            -- point where flipping `background` still affects the result.
             vim.api.nvim_create_autocmd("ColorSchemePre", {
                 pattern = "PaperColor",
                 callback = function()
@@ -98,20 +99,34 @@ return {
         end,
     },
 
-    -- tokyonight is kept AVAILABLE (not active) so it can be switched to with
-    -- :colorscheme. lazy = false because lazy.nvim has no `colorscheme` trigger --
-    -- an unloaded plugin's `colors/` dir is not on the runtimepath, so :colorscheme
-    -- would fail with E185. priority is left below PaperColor's 1000, so PaperColor
-    -- still wins at startup.
-    --   :colorscheme tokyonight-night   (dark)
-    --   :colorscheme tokyonight-storm   (dark, softer)
-    --   :colorscheme tokyonight-moon    (dark, cooler)
-    --   :colorscheme tokyonight-day     (light)
-    --   :colorscheme PaperColor         (back to the default)
-    -- NOTE: options.lua pins vim.o.background = "light" for PaperColor. Each
-    -- tokyonight VARIANT sets its own background, so the named variants above work
-    -- regardless; bare `:colorscheme tokyonight` follows the pinned light instead.
-    { "folke/tokyonight.nvim", lazy = false, priority = 900 },
+    -- tokyonight is THE DEFAULT (see the LazyVim spec at the bottom). `style` only
+    -- decides what bare `:colorscheme tokyonight` means; the named variants
+    -- (tokyonight-night, -storm, ...) each force their own.
+    {
+        "folke/tokyonight.nvim",
+        lazy = false,
+        priority = 1000,
+        opts = {
+            style = "night",
+            styles = {
+                comments = { italic = false }, -- see the note above; coupled to cell_width
+                keywords = { italic = false },
+            },
+            -- Window separators. tokyonight defines `border = black` (#15161e in
+            -- night) -- its DARKEST color, darker than the editor (#1a1b26) and one
+            -- step off the sidebar (#16161e), so the line between neo-tree and the
+            -- code is 1.05:1 / 1.00:1: effectively not drawn. The theme means the
+            -- darker sidebar background to be the boundary, but that is only a 4/255
+            -- step in night. `border` feeds WinSeparator + VertSplit and nothing
+            -- else, so re-pointing it at the palette's own grey fixes every split.
+            -- Read off the palette, not a hex, so storm/moon/day retrack it.
+            --   dark3 = 2.6:1 on the editor bg (clearly a line, not loud)
+            --   fg_gutter = 1.7:1, the line-number grey, if this is too strong
+            on_colors = function(c)
+                c.border = c.dark3
+            end,
+        },
+    },
 
     -- LazyVim ships a catppuccin spec too; disabled explicitly or lazy.nvim keeps
     -- reinstalling it. `enabled = false` lets `:Lazy clean` delete it.
@@ -120,7 +135,7 @@ return {
     {
         "LazyVim/LazyVim",
         opts = {
-            colorscheme = "PaperColor",
+            colorscheme = "tokyonight-night",
         },
     },
 }

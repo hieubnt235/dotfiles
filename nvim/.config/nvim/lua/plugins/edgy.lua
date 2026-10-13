@@ -156,8 +156,8 @@ return {
         opts.left = ordered
 
         -- Default panel sizes -- the size each panel STARTS at on a fresh nvim.
-        --   LEFT   = file/git/buffer trees + Outline (40 columns wide)
-        --   RIGHT  = AI / Claude panel (0.3 = 30% of screen width)
+        --   LEFT   = file/git/buffer trees + Outline (0.15 = 15% of screen width)
+        --   RIGHT  = AI / Claude panel (0.35 = 35% of screen width)
         --   BOTTOM = terminal (0.3 = 30% of screen height)
         -- Resize live with Alt+HJKL (below); that size now persists across toggle
         -- for the session. These values are only the starting point after restart.
@@ -165,8 +165,8 @@ return {
         opts.animate = vim.tbl_extend("force", opts.animate or {}, { enabled = false })
 
         opts.options = opts.options or {}
-        opts.options.left = vim.tbl_extend("force", opts.options.left or {}, { size = 0.2 })
-        opts.options.right = vim.tbl_extend("force", opts.options.right or {}, { size = 0.3 })
+        opts.options.left = vim.tbl_extend("force", opts.options.left or {}, { size = 0.15 })
+        opts.options.right = vim.tbl_extend("force", opts.options.right or {}, { size = 0.35 })
         opts.options.bottom = vim.tbl_extend("force", opts.options.bottom or {}, { size = 0.3 })
 
         -- Make terminals follow their SLOT size (the single knob: options.<edge>.size
