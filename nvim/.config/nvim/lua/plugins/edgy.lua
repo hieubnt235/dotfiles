@@ -53,6 +53,81 @@ local function step(win, axis, delta)
     end)
 end
 
+-- Repaint a terminal program after a layout pass has silently wiped part of it.
+--
+-- Symptom: half of the Claude panel (or a random rectangle of it) goes blank and
+-- stays blank until Claude is restarted.
+--
+-- Cause, measured on nvim 0.12.2 + edgy 8bfd280:
+--   * Whenever ANY docked window appears or goes, edgy re-docks EVERY bar by
+--     brute force: `wincmd L` on a bar's first window, `win_splitmove` for the
+--     rest (edgy/edgebar.lua:206-213), then puts the sizes back. Opening neo-tree
+--     took the Claude window through 95x51 -> 95x26 -> 47x53 -> 47x26 -> 95x51.
+--   * nvim resizes a terminal's cell grid the instant its window changes size,
+--     and shrinking DISCARDS the cells that no longer fit.
+--   * The program is only told through the pty size. That ended where it started,
+--     so the kernel sent no SIGWINCH and Claude never learned its screen was cut.
+-- edgy runs that pass with autocmds blocked, so nothing can be observed from
+-- outside it -- hence the hook on Edgebar.layout in `opts` below.
+--
+-- So: remember each terminal window's size while the layout is at rest. When one
+-- is seen at another size and is BACK at the resting size once things settle,
+-- nudge its pty one column narrower and back. Those are two real size changes,
+-- so the program redraws itself. A real resize (final size differs) needs
+-- nothing -- the program got its SIGWINCH -- and just becomes the new resting size.
+local check_terminals
+do
+    local SETTLE_MS = 150 -- a re-dock is synchronous; this only has to outlast it
+    local NUDGE_MS = 100
+    local resting = {} -- terminal window -> "WxH" the last time the layout was at rest
+    local suspect = {} -- terminal windows seen at another size since then
+    local timer = assert((vim.uv or vim.loop).new_timer())
+
+    -- The size nvim gives the terminal: the text area, without winbar or columns.
+    local function size(win)
+        local info = vim.fn.getwininfo(win)[1]
+        return (info.width - info.textoff) .. "x" .. info.height
+    end
+
+    local function repaint(win)
+        local chan = vim.bo[vim.api.nvim_win_get_buf(win)].channel
+        local function resize(dw)
+            local w, h = size(win):match("(%d+)x(%d+)")
+            pcall(vim.fn.jobresize, chan, tonumber(w) + dw, tonumber(h))
+        end
+        resize(-1)
+        vim.defer_fn(function()
+            if vim.api.nvim_win_is_valid(win) then
+                resize(0)
+            end
+        end, NUDGE_MS)
+    end
+
+    local function settle()
+        for win in pairs(suspect) do
+            if vim.api.nvim_win_is_valid(win) then
+                if size(win) == resting[win] then
+                    repaint(win)
+                else
+                    resting[win] = size(win)
+                end
+            else
+                resting[win] = nil
+            end
+        end
+        suspect = {}
+    end
+
+    function check_terminals()
+        for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+            if vim.bo[vim.api.nvim_win_get_buf(win)].buftype == "terminal" and size(win) ~= resting[win] then
+                suspect[win] = true
+                timer:start(SETTLE_MS, 0, vim.schedule_wrap(settle))
+            end
+        end
+    end
+end
+
 return {
     "folke/edgy.nvim",
     -- MOUSE DRAG on a panel divider. Plain splits drag fine, but edgy panels
@@ -63,7 +138,16 @@ return {
     -- be registered before edgy's; hence `init` (startup) rather than `opts`
     -- (edgy loads later, on VeryLazy).
     init = function()
-        local LEFTDRAG = vim.api.nvim_replace_termcodes("<LeftDrag>", true, false, true)
+        -- Transient resizes that do NOT come from edgy's re-dock (a plain :split
+        -- of the panel, a plugin setting its width). Registered here, before
+        -- edgy, so a panel is seen at its odd size BEFORE edgy's own WinResized
+        -- handler puts the size back.
+        vim.api.nvim_create_autocmd({ "WinNew", "WinResized", "TermOpen" }, {
+            group = vim.api.nvim_create_augroup("term_repaint", { clear = true }),
+            callback = check_terminals,
+        })
+
+        local LEFTDRAG =vim.api.nvim_replace_termcodes("<LeftDrag>", true, false, true)
         local dragged_at = 0
         -- Only commit sizes during an ACTUAL mouse drag. WinResized also fires
         -- when windows open/close (e.g. <C-/>), where nvim's own reflow briefly
@@ -104,6 +188,16 @@ return {
         })
     end,
     opts = function(_, opts)
+        -- See check_terminals above: look at the terminals right after each bar
+        -- is re-docked, while they are still at the size the re-dock left them.
+        local Edgebar = require("edgy.edgebar")
+        local layout = Edgebar.layout
+        Edgebar.layout = function(self, ...)
+            local ret = layout(self, ...)
+            check_terminals()
+            return ret
+        end
+
         opts.left = opts.left or {}
         opts.right = opts.right or {}
         for i = #opts.right, 1, -1 do
@@ -157,7 +251,7 @@ return {
 
         -- Default panel sizes -- the size each panel STARTS at on a fresh nvim.
         --   LEFT   = file/git/buffer trees + Outline (0.15 = 15% of screen width)
-        --   RIGHT  = AI / Claude panel (0.35 = 35% of screen width)
+        --   RIGHT  = AI / Claude panel (0.37 = 37% of screen width)
         --   BOTTOM = terminal (0.3 = 30% of screen height)
         -- Resize live with Alt+HJKL (below); that size now persists across toggle
         -- for the session. These values are only the starting point after restart.
@@ -166,7 +260,7 @@ return {
 
         opts.options = opts.options or {}
         opts.options.left = vim.tbl_extend("force", opts.options.left or {}, { size = 0.15 })
-        opts.options.right = vim.tbl_extend("force", opts.options.right or {}, { size = 0.35 })
+        opts.options.right = vim.tbl_extend("force", opts.options.right or {}, { size = 0.37 })
         opts.options.bottom = vim.tbl_extend("force", opts.options.bottom or {}, { size = 0.3 })
 
         -- Make terminals follow their SLOT size (the single knob: options.<edge>.size

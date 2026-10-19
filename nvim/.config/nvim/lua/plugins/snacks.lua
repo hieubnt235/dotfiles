@@ -43,15 +43,15 @@ return {
 
         -- Smooth scrolling (snacks bundles this; it's OFF by default, so enable it).
         -- Animates <C-d>/<C-u>, mouse wheel, n/N, etc. Terminal buffers are skipped.
-        -- `total` = the animation length in ms. Raise for slower, lower for snappier.
-        -- <C-d>/<C-u> travel 3/4 of a window (see config/keymaps.lua).
-        -- `total` = how long the whole motion takes, in ms. THIS is the speed
-        -- knob: raise it to slow the scroll down, lower it for snappier.
-        -- `step` is only the frame interval. Snacks' own defaults are 200 / 50.
+        -- <C-d>/<C-u> travel 15 lines (see config/keymaps.lua).
+        -- Animation time = `step` ms PER LINE scrolled, capped at `total` ms
+        -- (snacks/animate/init.lua:111-113). A 15-line <C-d> at step 10 would be
+        -- 150 ms, so the `total` cap is what decides its speed; `step` only
+        -- matters for short scrolls (3 lines = 30 ms). Snacks' defaults: 10 / 200.
         scroll = {
             enabled = true,
             animate = {
-                duration = { step = 10, total = 100 },
+                duration = { step = 10, total = 50 },
                 easing = "linear",
             },
             -- Used when <C-d> repeats (held down). Much shorter than the single

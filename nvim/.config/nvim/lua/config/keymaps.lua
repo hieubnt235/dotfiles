@@ -26,6 +26,12 @@ vim.keymap.set("n", "<leader>gG", function()
     require("neogit").open()
 end, { desc = "neogit cwd (neogit)" })
 
+-- Terminal: leave terminal mode with a double <C-q>, instead of the awkward
+-- <C-\><C-n>. Not <Esc>: snacks terminals do map <Esc><Esc> to normal mode, but
+-- double <Esc> is also Claude Code's interrupt/rewind, so it cannot be relied on
+-- inside the Claude panel.
+vim.keymap.set("t", "<C-q><C-q>", [[<C-\><C-n>]], { desc = "Terminal: to normal mode" })
+
 -- <leader>g label convention: lowercase, with the owning plugin in parens.
 -- The "Git " prefix is dropped -- the group is already called git.
 -- These are the entries LazyVim sets with plain vim.keymap.set, so re-setting
