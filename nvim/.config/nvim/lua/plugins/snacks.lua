@@ -14,7 +14,20 @@ return {
         -- Image preview (PNG/JPG/etc). svg is deliberately NOT added to formats:
         -- snacks ERASES a buffer's text and replaces it with the image when it
         -- renders (placement.lua), so listing svg would make .svg un-editable.
-        image = { enabled = true },
+        image = {
+            enabled = true,
+            convert = {
+                -- Mermaid diagrams look like GitHub / the browser preview: mermaid's
+                -- default theme on white, in both light and dark editor themes. (snacks'
+                -- own pick is "dark"/"neutral" on transparent, following background.)
+                -- -s 3 renders at triple size: snacks sizes images by DPI (mermaid's
+                -- 72 -> 1.33x bigger) and caps them at 80 columns, so a big source is
+                -- always shrunk (sharp), never stretched (blurry). Costs ~0.05s.
+                mermaid = function()
+                    return { "-i", "{src}", "-o", "{file}", "-b", "white", "-t", "default", "-s", "3" }
+                end,
+            },
+        },
 
         -- Start screen.
         dashboard = {

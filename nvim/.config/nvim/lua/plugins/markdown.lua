@@ -8,8 +8,13 @@ return {
         "MeanderingProgrammer/render-markdown.nvim",
         opts = function(_, opts)
             opts.heading = nil
-            opts.code = nil
             opts.checkbox = nil
+            -- One change from the defaults: code.border = "hide" conceals the ```
+            -- fence lines (conceal_lines), and snacks.image draws a mermaid/math
+            -- image as virtual lines on the closing fence -- a concealed line takes
+            -- its virtual lines with it, so the diagram only showed with the cursor
+            -- on that line. "thick" draws the fences as a background strip instead.
+            opts.code = { border = "thick" }
         end,
     },
 }
