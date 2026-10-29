@@ -304,7 +304,7 @@ set -g @plugin 'tmux-plugins/tmux-resurrect'
 set -g @plugin 'tmux-plugins/tmux-continuum'
 set -g @resurrect-processes 'false'
 set -g @continuum-restore 'on'
-set -g @continuum-save-interval '15'
+set -g @continuum-save-interval '1'    # minutes (integer only; 1 = minimum)
 # manual controls if you ever want them: prefix + Ctrl-s = save, prefix + Ctrl-r = restore
 
 set -g @plugin 'azorng/tmux-smooth-scroll'

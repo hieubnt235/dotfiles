@@ -13,9 +13,7 @@ return {
 
         -- Image preview (PNG/JPG/etc). svg is deliberately NOT added to formats:
         -- snacks ERASES a buffer's text and replaces it with the image when it
-        -- renders (placement.lua), so listing svg would make .svg un-editable. To get
-        -- BOTH edit + view, .svg stays as XML text and a separate-split image preview
-        -- is toggled via <leader>mp (see autocmds.lua). Needs imagemagick+librsvg2-bin.
+        -- renders (placement.lua), so listing svg would make .svg un-editable.
         image = { enabled = true },
 
         -- Start screen.

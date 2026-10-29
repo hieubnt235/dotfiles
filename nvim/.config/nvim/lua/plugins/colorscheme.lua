@@ -6,6 +6,8 @@
 --   :colorscheme tokyonight-moon    (dark, cooler)
 --   :colorscheme tokyonight-day     (light)
 --   :colorscheme PaperColor         (light)
+--   :colorscheme catppuccin-mocha   (and -macchiato / -frappe / -latte)
+--   :colorscheme kanagawa-wave      (and -dragon / -lotus)
 --
 -- ITALICS ARE OFF ON PURPOSE, in BOTH schemes (tokyonight `styles`, PaperColor
 -- `allow_italic = 0`). This is a font-metrics constraint, not taste: JetBrains
@@ -128,9 +130,40 @@ return {
         },
     },
 
-    -- LazyVim ships a catppuccin spec too; disabled explicitly or lazy.nvim keeps
-    -- reinstalling it. `enabled = false` lets `:Lazy clean` delete it.
-    { "catppuccin/nvim", enabled = false },
+    -- catppuccin + kanagawa: installed to SWITCH to, never the default.
+    -- `lazy = false` keeps them listed in `:colorscheme <Tab>`.
+    --   :colorscheme catppuccin-mocha / -macchiato / -frappe / -latte
+    --   :colorscheme kanagawa-wave / -dragon / -lotus
+    -- This merges with LazyVim's own catppuccin spec (integrations + bufferline
+    -- theme; bufferline.lua only keeps that theme while catppuccin is active).
+    {
+        "catppuccin/nvim",
+        name = "catppuccin",
+        lazy = false,
+        priority = 1000,
+        opts = {
+            no_italic = true, -- see the note above; coupled to cell_width
+        },
+    },
+    {
+        "rebelot/kanagawa.nvim",
+        lazy = false,
+        priority = 1000,
+        opts = {
+            commentStyle = { italic = false }, -- see the note above; coupled to cell_width
+            keywordStyle = { italic = false },
+            -- hardcoded italics the Style options don't reach (`this`/`self`, ...).
+            -- Markdown *italic* text stays italic, same as tokyonight.
+            overrides = function()
+                local off = { italic = false }
+                return {
+                    ["@variable.builtin"] = off,
+                    NeotestMarked = off,
+                    NvimTreeOpenedFile = off,
+                }
+            end,
+        },
+    },
 
     {
         "scottmckendry/cyberdream.nvim",
@@ -153,16 +186,24 @@ return {
             require("github-theme").setup({
                 -- ...
             })
-
-            vim.cmd("colorscheme github_light")
         end,
     },
     { "EdenEast/nightfox.nvim" },
+    {
+        "nickkadutskyi/jb.nvim",
+        lazy = false,
+        priority = 1000,
+        opts = {},
+        config = function()
+            -- require("jb").setup({transparent = true})
+            -- vim.cmd("colorscheme jb")
+        end,
+    },
 
     {
         "LazyVim/LazyVim",
         opts = {
-            colorscheme = "github_light",
+            colorscheme = "tokyonight-moon",
         },
     },
 }

@@ -12,9 +12,12 @@
 return {
     "nvim-lualine/lualine.nvim",
     opts = function(_, opts)
+        -- lualine's own loader, not `require`: it dofile()s the theme each call,
+        -- so "auto" is re-derived from the CURRENT colorscheme. `require` caches
+        -- the first result in package.loaded.
         local function resolve(t)
             if type(t) == "string" then
-                local ok, mod = pcall(require, "lualine.themes." .. t)
+                local ok, mod = pcall(require("lualine.utils.loader").load_theme, t)
                 return ok and mod or nil
             end
             return t
@@ -28,21 +31,29 @@ return {
             end
         end
         opts.options = opts.options or {}
-        -- LazyVim leaves theme = "auto" (derived live from the colorscheme). Resolve
-        -- it to a table so we can add a `terminal` section; we mirror normal's b/c so
-        -- only the bold "a" block (the mode label) changes color.
-        local theme = resolve(opts.options.theme or "auto")
-        if type(theme) == "table" and type(theme.normal) == "table" then
-            theme.terminal = {
-                a = {
-                    fg = (theme.normal.a or {}).fg,
-                    bg = hl_fg("DiagnosticError") or "#e46876",
-                    gui = "bold",
-                },
-                b = theme.normal.b,
-                c = theme.normal.c,
-            }
-            opts.options.theme = theme
+        -- LazyVim leaves theme = "auto" (derived live from the colorscheme). We
+        -- resolve it to a table to add a `terminal` section, mirroring normal's b/c
+        -- so only the bold "a" block (the mode label) changes color.
+        --
+        -- Handed to lualine as a FUNCTION: lualine calls it again on every
+        -- ColorScheme / `background` change (lualine.lua setup_theme). A plain
+        -- table is reused as-is, which froze the statusline in whatever scheme was
+        -- loaded at startup.
+        local base = opts.options.theme or "auto"
+        opts.options.theme = function()
+            local theme = resolve(base)
+            if type(theme) == "table" and type(theme.normal) == "table" then
+                theme.terminal = {
+                    a = {
+                        fg = (theme.normal.a or {}).fg,
+                        bg = hl_fg("DiagnosticError") or "#e46876",
+                        gui = "bold",
+                    },
+                    b = theme.normal.b,
+                    c = theme.normal.c,
+                }
+            end
+            return theme
         end
     end,
 }
