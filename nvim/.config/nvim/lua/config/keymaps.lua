@@ -82,3 +82,32 @@ end, { expr = true, desc = "Scroll down " .. SCROLL_LINES .. " lines" })
 vim.keymap.set({ "n", "v" }, "<C-u>", function()
     return SCROLL_LINES .. "<C-u>"
 end, { expr = true, desc = "Scroll up " .. SCROLL_LINES .. " lines" })
+
+-- snacks' preview-window keys (<a-w> = cycle_win, q = cancel) are attached only
+-- when the preview is snacks' own scratch buffer (git log). In pickers whose
+-- preview shows a REAL buffer (buffers picker) they are missing, so <a-w> got
+-- stuck there and q did nothing. Supply them from that window only; elsewhere
+-- <a-w> does nothing and q stays Vim's macro record. snacks' own keys still win
+-- in its own windows.
+local function picker_in_preview()
+    local picker = Snacks.picker.get()[1]
+    if picker and picker.preview.win.win == vim.api.nvim_get_current_win() then
+        return picker
+    end
+end
+vim.keymap.set("n", "<a-w>", function()
+    local picker = picker_in_preview()
+    if picker then
+        picker:action("cycle_win")
+    end
+end, { desc = "Picker: next window" })
+vim.keymap.set("n", "q", function()
+    local picker = picker_in_preview()
+    if picker then
+        vim.schedule(function()
+            picker:action("cancel")
+        end)
+        return ""
+    end
+    return "q"
+end, { expr = true, desc = "Picker: quit (in preview) / record macro" })

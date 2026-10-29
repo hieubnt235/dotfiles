@@ -209,8 +209,8 @@ return {
         -- Left-panel ORDER + short TITLES only. This just rearranges/renames the
         -- sidebar entries LazyVim already created; it does NOT touch the
         -- resize/persist/animate behavior below.
-        --   Order (top -> bottom): Filesystem, Outline, Buffers
-        --   Titles: shorten LazyVim's long "Neo-Tree Buffers" etc. to one word.
+        --   Order (top -> bottom): Filesystem, Outline
+        --   Titles: shorten LazyVim's long "Neo-Tree Filesystem" etc. to one word.
         local function kind(item)
             if item.ft == "Outline" then
                 return "outline"
@@ -227,9 +227,10 @@ return {
             end
         end
         local short_title = { files = "Files", outline = "Outline", buffers = "Buffers", git = "Git" }
-        -- "git" stays in short_title/kind so the Git panel is still CLASSIFIED and
-        -- thus excluded from `rest`; leaving it out of `want` drops it entirely.
-        local want = { "files", "outline", "buffers" }
+        -- "git"/"buffers" stay in short_title/kind so those panels are still
+        -- CLASSIFIED and thus excluded from `rest`; leaving them out of `want` drops
+        -- them entirely. Open buffers: bufferline tabs + the snacks picker (<leader>,).
+        local want = { "files", "outline" }
         local matched, rest = {}, {}
         for _, item in ipairs(opts.left) do
             local k = kind(item)
