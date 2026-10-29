@@ -63,6 +63,7 @@
   "rustaceanvim": { "branch": "master", "commit": "b25d186481624964523fee34f44c529b101c7435" },
   "smartyank.nvim": { "branch": "master", "commit": "c4e53e0d9316ca790a6f5d78aad73206a763873b" },
   "snacks.nvim": { "branch": "main", "commit": "882c996cf28183f4d63640de0b4c02ec886d01f2" },
+  "table-nvim": { "branch": "main", "commit": "816d251963bf4c8c3d765dab40ebac3c259c7b6d" },
   "telescope-hierarchy.nvim": { "branch": "feature/types", "commit": "34a3716cd50ea2160e7ed550b9a7743ec57e66e9" },
   "telescope.nvim": { "branch": "master", "commit": "40aedd8a68c78a656a10a8d62d80c54af59420fb" },
   "todo-comments.nvim": { "branch": "main", "commit": "31e3c38ce9b29781e4422fc0322eb0a21f4e8668" },

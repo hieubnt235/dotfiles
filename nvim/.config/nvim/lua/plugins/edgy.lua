@@ -39,7 +39,7 @@ local function commit(win, axis, target)
     end
 end
 
--- Keyboard resize step (Alt+HJKL). Fixes edgy's "cached shrink" bug: its own
+-- Keyboard resize step (Ctrl+arrow keys, see opts.keys below). Fixes edgy's "cached shrink" bug: its own
 -- resize (window.lua:212) bases each step on a STORED value that keeps sinking
 -- BELOW the visible floor, so once you hit the smallest size, extra shrinks bank
 -- a hidden deficit you must "pay back" before anything grows again. We base each
