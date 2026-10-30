@@ -16,6 +16,11 @@ return {
         -- renders (placement.lua), so listing svg would make .svg un-editable.
         image = {
             enabled = true,
+            -- Inline images (and mermaid): only a WIDTH limit, 120 columns (snacks'
+            -- default is 80). Height follows the image's own proportions -- snacks
+            -- always scales both together, never stretches -- with no height cap
+            -- (snacks' default caps at 40 rows; 10000 = effectively none).
+            doc = { max_width = 120, max_height = 10000 },
             convert = {
                 -- Mermaid diagrams look like GitHub / the browser preview: mermaid's
                 -- default theme on white, in both light and dark editor themes. (snacks'
